@@ -46,11 +46,7 @@ class DroidCommand extends Command
                 </span>
             HTML);
         while (true) {
-            $message = ask(<<<HTML
-                <span class="mt-1 mr-1 px-1">
-                    🍻:
-                </span>
-            HTML);
+            $message = ask('<span class="mt-1 mx-1">🍻:</span>');
 
             if ($message === 'exit') {
                 break;

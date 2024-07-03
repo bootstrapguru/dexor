@@ -17,12 +17,12 @@ final class ListFiles {
 
         $basePath = base_path($path);
 
-        render(`<<<'HTML'
+        render(<<<HTML
             <div class="py-1 ml-2">
-                Listing Files from
-                <div class="px-1 bg-blue-300 text-black">$basePath</div>
+                <div class="px-1 bg-blue-300 text-black">Listing Files from</div>
+                🗂️ $basePath
             </div>
-        HTML`);
+        HTML);
 
         try {
             $fileTreeLister = new FileTreeLister();
