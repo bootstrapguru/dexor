@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'default' => NunoMaduro\LaravelConsoleSummary\SummaryCommand::class,
+    'default' => \App\Commands\DroidCommand::class,
 
     /*
     |--------------------------------------------------------------------------
