@@ -12,6 +12,7 @@
         "droid_config"
     ],
     "exclude-composer-files": false,
+    "exclude-dev-files": false,
     "compression": "GZ",
     "compactors": [
         "KevinGH\\Box\\Compactor\\Php",

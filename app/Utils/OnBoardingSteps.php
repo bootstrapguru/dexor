@@ -25,21 +25,11 @@ class OnBoardingSteps
      */
     public function isCompleted(): bool
     {
-        $checks = [
-            'configurationFileExists',
-            'viewsFolderExists',
-            'APIKeyExists',
-            'modelExists',
-            'assistantExists',
-        ];
-
-        foreach ($checks as $check) {
-            if (!$this->$check()) {
-                return false;
-            }
-        }
-
-        return true;
+        return ($this->configurationFileExists()
+            && $this->viewsFolderExists()
+            && $this->APIKeyExists()
+            && $this->modelExists()
+            && $this->assistantExists());
     }
 
     private function viewsFolderExists(): bool
@@ -85,7 +75,7 @@ class OnBoardingSteps
         if (!Storage::disk('home')->exists($this->configFile)) {
             try {
                 // create the config file from the internal config file
-                Storage::disk('home')->put($this->configFile, Storage::disk('internal')->get(str_replace('.', '', $this->configFile)));
+                Storage::disk('home')->put($this->configFile, '');
             } catch (Exception $ex) {
                 return false;
             }
@@ -106,7 +96,6 @@ class OnBoardingSteps
                 hint: 'You can find your API key in your OpenAI dashboard'
             );
             $this->setConfigValue('DROID_API_KEY', $apiKey);
-            Config::set('droid.api_key', $apiKey);
         }
 
         return true;

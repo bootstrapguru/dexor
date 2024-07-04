@@ -42,7 +42,7 @@ class ChatAssistant
     {
        return $this->client->assistants()->create([
             'name' => 'Droid Dev',
-            'model' => config('droid.ai_model'),
+            'model' => config('droid.model'),
             'description' => 'Droid Dev is a code generation assistant for Web applications',
             'instructions' => config('droid.prompt') ?? 'You are an AI assistant called Droid, skilled in software development and code generation. The current codebase is a Laravel application with Jetsream, Inertia.js with Vue, and Tailwind CSS.
             You will receive instructions on a feature request or bug fix.

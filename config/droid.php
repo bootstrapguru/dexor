@@ -14,7 +14,7 @@ return [
     /*
      * OpenAI Model
      */
-    'ai_model' => env('DROID_MODEL', 'gpt-4o'),
+    'model' => env('DROID_MODEL'),
 
     /*
      * OpenAI Assistant ID
