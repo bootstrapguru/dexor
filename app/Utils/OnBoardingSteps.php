@@ -9,7 +9,9 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\error;
+use function Laravel\Prompts\select;
 use function Laravel\Prompts\spin;
+use function Laravel\Prompts\text;
 use function Termwind\ask;
 use function Termwind\render;
 
@@ -23,20 +25,18 @@ class OnBoardingSteps
      */
     public function isCompleted(): bool
     {
-        if (!$this->configurationFileExists()) {
-            return false;
-        }
+        $checks = [
+            'configurationFileExists',
+            'viewsFolderExists',
+            'APIKeyExists',
+            'modelExists',
+            'assistantExists',
+        ];
 
-        if (!$this->viewsFolderExists()) {
-            return false;
-        }
-
-        if (!$this->APIKeyExists()) {
-            return false;
-        }
-
-        if (!$this->assistantExists()) {
-            return false;
+        foreach ($checks as $check) {
+            if (!$this->$check()) {
+                return false;
+            }
         }
 
         return true;
@@ -53,6 +53,26 @@ class OnBoardingSteps
         }
 
         Config::set('view.compiled', Storage::disk('home')->path('.droid_views'));
+
+        return true;
+    }
+
+    /**
+     * @throws Exception
+     */
+    private function modelExists(): bool
+    {
+        if (!config('droid.model')) {
+            $model = select(
+                label: '🤖 Choose the default Model for the assistant',
+                options: ['gpt-4o', 'gpt-4-turbo', 'gpt-3.5'],
+                default: 'gpt-4o',
+                hint: 'The model to use for the assistant. You can change this later in the configuration file'
+            );
+
+            $this->setConfigValue('DROID_MODEL', $model);
+            Config::set('droid.model', $model);
+        }
 
         return true;
     }
@@ -80,11 +100,11 @@ class OnBoardingSteps
     private function APIKeyExists(): bool
     {
         if (!config('droid.api_key')) {
-            $apiKey = ask(<<<HTML
-                <span class="mt-1 mr-1 px-1">
-                    🤖: I don't see an API key added. Enter your OpenAI API key to continue
-                </span>
-            HTML);
+            $apiKey = text(
+                label: '🤖: Enter your OpenAI API key to continue',
+                placeholder: 'sk-xxxxxx-xxxxxx-xxxxxx-xxxxxx',
+                hint: 'You can find your API key in your OpenAI dashboard'
+            );
             $this->setConfigValue('DROID_API_KEY', $apiKey);
             Config::set('droid.api_key', $apiKey);
         }
@@ -101,13 +121,18 @@ class OnBoardingSteps
 
         if (!config('droid.assistant_id')) {
 
-            $answer = confirm('🤖: Looks like you have not set up your assistant yet. Do you want me create it now?');
+            $confirmed = confirm(
+                label: 'No assistant found. Do you want to create an assistant now?',
+                yes: 'I accept',
+                no: 'I decline',
+                hint: 'This will create an assistant on OpenAI with the provided API key'
+            );
 
-            if (!$answer) {
+            if (!$confirmed) {
                 render(view('assistant', [
                     'answer' => 'Okay, you can always run `droid` to set up your assistant later'
                 ]));
-                return true;
+                return false;
             }
 
             $response = spin(
