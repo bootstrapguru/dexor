@@ -63,7 +63,6 @@ class OnBoardingSteps
             );
 
             $this->setConfigValue('DROID_MODEL', $model);
-            Config::set('droid.model', $model);
         }
 
         return true;
@@ -215,7 +214,6 @@ class OnBoardingSteps
                 $parsedKey = strtolower(str_replace('DROID_', '', $key));
                 Config::set('droid.' . $parsedKey, $value);
             }
-
 
             return true;
         }
