@@ -4,7 +4,7 @@ return [
     /*
      * AI Service
      */
-   'ai_service' => env('DROID_AI_SERVICE', 'openai'),
+    'ai_service' => env('DROID_AI_SERVICE', 'openai'),
 
     /*
      * API Key

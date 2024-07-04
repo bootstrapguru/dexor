@@ -4,11 +4,12 @@ namespace App\Tools;
 
 use App\Attributes\Description;
 use Illuminate\Support\Facades\Storage;
+
 use function Termwind\render;
 
 #[Description('Write content to an existing file at the specified path. Use this when you need to write content to a file.')]
-final class WriteToFile {
-
+final class WriteToFile
+{
     public function handle(
         #[Description('Relative File path to write content to')]
         string $file_path,
@@ -30,14 +31,15 @@ final class WriteToFile {
                 'name' => 'WriteToFile',
                 'output' => 'The file already exists in the path, attempting to merge....',
             ]));
+
             // Append the new content to the file
-            return 'The file already exists in the path, Make sure to merge your suggestion with the existing file without any breaking changes. Once, they are merged, call the update_file function. The current contents of the file are '. $fileContent;
+            return 'The file already exists in the path, Make sure to merge your suggestion with the existing file without any breaking changes. Once, they are merged, call the update_file function. The current contents of the file are '.$fileContent;
         }
 
         $directory = dirname($file_path);
 
         // Ensure the directory exists
-        if (!Storage::exists($directory)) {
+        if (! Storage::exists($directory)) {
             Storage::makeDirectory($directory, 0755, true);
         }
 
@@ -51,5 +53,4 @@ final class WriteToFile {
 
         return $output;
     }
-
 }

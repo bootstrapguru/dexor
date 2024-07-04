@@ -17,12 +17,14 @@
     ],
     "require": {
         "php": "^8.2.0",
+        "guzzlehttp/guzzle": "^7.8",
+        "guzzlehttp/psr7": "^2.6",
         "illuminate/view": "^11.5",
+        "laravel-zero/phar-updater": "^1.4",
         "openai-php/client": "^0.10.1"
     },
     "require-dev": {
         "laravel-zero/framework": "^11.0.0",
-        "laravel/pint": "^1.15.2",
         "mockery/mockery": "^1.6.11",
         "pestphp/pest": "^2.34.7"
     },
