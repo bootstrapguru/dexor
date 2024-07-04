@@ -26,6 +26,10 @@ final class WriteToFile {
             // Get the file content
             $fileContent = Storage::get($file_path);
 
+            render(view('tool', [
+                'name' => 'WriteToFile',
+                'output' => 'The file already exists in the path, attempting to merge....',
+            ]));
             // Append the new content to the file
             return 'The file already exists in the path, Make sure to merge your suggestion with the existing file without any breaking changes. Once, they are merged, call the update_file function. The current contents of the file are '. $fileContent;
         }
@@ -39,7 +43,13 @@ final class WriteToFile {
 
         Storage::put($file_path, $content);
 
-        return 'Created File: '.$file_path;
+        $output = 'Created File: '.$file_path;
+        render(view('tool', [
+            'name' => 'WriteToFile',
+            'output' => $output,
+        ]));
+
+        return $output;
     }
 
 }

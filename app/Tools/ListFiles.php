@@ -19,7 +19,7 @@ final class ListFiles {
             $fileTreeLister = new FileTreeLister();
             $list = $fileTreeLister->listTree($path);
             render(view('tool', [
-                'name' => 'ListFiles',
+                'name' => 'ListFiles from ' . $path,
                 'output' => $list,
             ]));
 

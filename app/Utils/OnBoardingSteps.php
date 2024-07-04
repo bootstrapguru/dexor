@@ -27,6 +27,10 @@ class OnBoardingSteps
             return false;
         }
 
+        if (!$this->viewsFolderExists()) {
+            return false;
+        }
+
         if (!$this->APIKeyExists()) {
             return false;
         }
@@ -34,6 +38,21 @@ class OnBoardingSteps
         if (!$this->assistantExists()) {
             return false;
         }
+
+        return true;
+    }
+
+    private function viewsFolderExists(): bool
+    {
+        if (!Storage::disk('home')->exists('.droid_views')) {
+            try {
+                Storage::disk('home')->makeDirectory('.droid_views');
+            } catch (Exception $ex) {
+                return false;
+            }
+        }
+
+        Config::set('view.compiled', Storage::disk('home')->path('.droid_views'));
 
         return true;
     }
@@ -157,6 +176,7 @@ class OnBoardingSteps
                 $parsedKey = strtolower(str_replace('DROID_', '', $key));
                 Config::set('droid.' . $parsedKey, $value);
             }
+
 
             return true;
         }

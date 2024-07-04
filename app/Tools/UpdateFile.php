@@ -4,6 +4,7 @@ namespace App\Tools;
 
 use App\Attributes\Description;
 use Illuminate\Support\Facades\Storage;
+use function Termwind\render;
 
 #[Description('Update the content of an existing file at the specified path. Use this when you need to update the existing of a file after write_to_file returns a suggestion to merge the content.')]
 final class UpdateFile {
@@ -25,12 +26,22 @@ final class UpdateFile {
 
         // Ensure the directory exists
         if (!Storage::exists($directory)) {
+            render(view('tool', [
+                'name' => 'WriteToFile',
+                'output' => 'Directory not found. Creating '. $directory,
+            ]));
             Storage::makeDirectory($directory, 0755, true);
         }
 
         Storage::put($file_path, $content);
 
-        return 'The file has been updated successfully at '.$file_path;
+        $output = 'The file has been updated successfully at '.$file_path;
+        render(view('tool', [
+            'name' => 'WriteToFile',
+            'output' => $output,
+        ]));
+
+        return $output;
     }
 
 }

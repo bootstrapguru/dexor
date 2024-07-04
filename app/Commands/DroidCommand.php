@@ -24,7 +24,6 @@ class DroidCommand extends Command
      */
     public function handle(): int
     {
-
         $onBoardingSteps = new OnBoardingSteps();
         if (!$onBoardingSteps->isCompleted()) {
             return self::FAILURE;

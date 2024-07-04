@@ -27,7 +27,7 @@ final class ReadFile {
             return Storage::get($file_path);
         }
 
-        $output = 'The file does not exist in the path';
+        $output = 'The file does not exist in the path: '.$file_path;
         render(view('tool', [
             'name' => 'ReadFile',
             'output' => $output,
