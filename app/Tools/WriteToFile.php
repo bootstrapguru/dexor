@@ -3,6 +3,7 @@
 namespace App\Tools;
 
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
 use function Laravel\Prompts\info;
 use App\Attributes\Description;
 
@@ -19,9 +20,9 @@ final class WriteToFile {
 
         $basePath = base_path($file_path);
 
-        if (File::exists($basePath)) {
+        if (Storage::exists($basePath)) {
             // Get the file content
-            $fileContent = File::get($basePath);
+            $fileContent = Storage::get($basePath);
 
             // Append the new content to the file
             return 'The file already exists in the path, Make sure to merge your suggestion with the existing file without any breaking changes. Once, they are merged, call the update_file function. The current contents of the file are '. $fileContent;
@@ -30,11 +31,12 @@ final class WriteToFile {
         $directory = dirname($basePath);
 
         // Ensure the directory exists
-        if (!File::isDirectory($directory)) {
-            File::makeDirectory($directory, 0755, true);
+        if (!Storage::exists($directory)) {
+            Storage::makeDirectory($directory, 0755, true);
         }
 
-        File::put($basePath, $content);
+        Storage::put($basePath, $content);
+        info('The file has been created successfully at '.$file_path);
         return 'The file has been created successfully at '.$file_path;
     }
 

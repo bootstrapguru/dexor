@@ -5,6 +5,7 @@ namespace App\Commands;
 use App\Services\ChatAssistant;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
 use function Laravel\Prompts\spin;
 use function Termwind\{ask, render};
 
@@ -45,6 +46,7 @@ class DroidCommand extends Command
                     🤖: How can I help you today?
                 </span>
             HTML);
+
         while (true) {
             $message = ask('<span class="mt-1 mx-1">🍻:</span>');
 
@@ -53,7 +55,6 @@ class DroidCommand extends Command
             }
 
             $response = $chatAssistant->getAnswer($threadRun, $message);
-
             $this->info('Assistant: ' . $response);
         }
 
@@ -62,14 +63,14 @@ class DroidCommand extends Command
 
     protected function setEnvValue($key, $value): void
     {
-        $envFilePath = base_path('.env');
+        $envFilePath = base_path('.droid_config');
 
-        if (!File::exists($envFilePath)) {
-            $this->error('.env file does not exist.');
+        if (!Storage::exists($envFilePath)) {
+            $this->error('.env file does not exist. Create .env file inside your project root directory and try again.');
             return;
         }
 
-        $envContent = File::get($envFilePath);
+        $envContent = Storage::get($envFilePath);
         $pattern = "/^{$key}=.*/m";
 
         if (preg_match($pattern, $envContent)) {
@@ -80,6 +81,6 @@ class DroidCommand extends Command
             $envContent .= "\n{$key}={$value}";
         }
 
-        File::put($envFilePath, $envContent);
+        Storage::put($envFilePath, $envContent);
     }
 }

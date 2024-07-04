@@ -3,6 +3,7 @@
 namespace App\Tools;
 
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
 use function Laravel\Prompts\info;
 use App\Attributes\Description;
 
@@ -21,11 +22,11 @@ final class UpdateFile {
         $directory = dirname($basePath);
 
         // Ensure the directory exists
-        if (!File::isDirectory($directory)) {
-            File::makeDirectory($directory, 0755, true);
+        if (!Storage::exists($directory)) {
+            Storage::makeDirectory($directory, 0755, true);
         }
 
-        File::put($basePath, $content);
+        Storage::put($basePath, $content);
         info('The file has been updated successfully at '.$file_path);
         return 'The file has been updated successfully at '.$file_path;
     }
