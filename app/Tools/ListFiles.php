@@ -15,12 +15,14 @@ final class ListFiles {
         string $path,
     ): string {
 
-        render('ListFiles before'. $path);
-
         try {
             $fileTreeLister = new FileTreeLister();
             $list = $fileTreeLister->listTree($path);
-            render('ListFiles after'. $list);
+            render(view('tool', [
+                'name' => 'ListFiles',
+                'output' => $list,
+            ]));
+
             return $list;
         } catch (DirectoryNotFoundException $e) {
             return $e->getMessage();

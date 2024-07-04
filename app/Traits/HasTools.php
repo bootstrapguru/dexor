@@ -107,19 +107,6 @@ trait HasTools {
                 'tool_call_id' => $toolCall['id'],
                 'output'       => $output,
             ];
-
-            $name = $toolCall['function']['name'];
-
-            render(<<<HTML
-                <div class="text-green-300">
-                    <div class="font-bold">✅ $name: </div>
-                    <div>
-                        <pre>
-                            $output</pre>
-                        </div>
-                    </div>
-                HTML);
-
         }
 
         return $toolOutputs;

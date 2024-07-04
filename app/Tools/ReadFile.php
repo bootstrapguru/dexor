@@ -14,18 +14,26 @@ final class ReadFile {
         string $file_path,
     ): string {
 
-        render('ReadFile before: '. $file_path);
-
         // Make sure it's a relative path
         if (str_contains($file_path, Storage::path(DIRECTORY_SEPARATOR))) {
             $file_path = str_replace(Storage::path(DIRECTORY_SEPARATOR), '', $file_path);
         }
 
         if (Storage::exists($file_path)) {
+            render(view('tool', [
+                'name' => 'ReadFile',
+                'output' => $file_path,
+            ]));
             return Storage::get($file_path);
         }
 
-        return 'The file does not exist in the path';
+        $output = 'The file does not exist in the path';
+        render(view('tool', [
+            'name' => 'ReadFile',
+            'output' => $output,
+        ]));
+
+        return $output;
     }
 
 }

@@ -85,7 +85,9 @@ class OnBoardingSteps
             $answer = confirm('🤖: Looks like you have not set up your assistant yet. Do you want me create it now?');
 
             if (!$answer) {
-                render('<div class="px-1 pt-1">🤖: Okay, you can always run `droid` to set up your assistant later.</div>');
+                render(view('assistant', [
+                    'answer' => 'Okay, you can always run `droid` to set up your assistant later'
+                ]));
                 return true;
             }
 
@@ -99,7 +101,9 @@ class OnBoardingSteps
                 return false;
             }
             $this->setConfigValue('DROID_ASSISTANT_ID', $response->id);
-            render('<div class="px-1 pt-1">🤖: <span class="font-bold bg-green-300 text-black">'.$response->name.'</span> has been created successfully 🎉.</div>');
+            render(view('assistant', [
+                'answer' => $response->name . ' has been created successfully 🎉'
+            ]));
             return true;
         }
 

@@ -25,13 +25,6 @@ class DroidCommand extends Command
     public function handle(): int
     {
 
-//        while (true) {
-//            $fileTreeLister = new FileTreeLister();
-//            $path = $this->ask('Enter the path to list files from');
-//            $this->info($fileTreeLister->listTree($path));
-//        }
-
-
         $onBoardingSteps = new OnBoardingSteps();
         if (!$onBoardingSteps->isCompleted()) {
             return self::FAILURE;
@@ -40,11 +33,9 @@ class DroidCommand extends Command
         $chatAssistant = new ChatAssistant;
 
         $threadRun = $chatAssistant->createThread();
-        render(<<<HTML
-                <span class="mt-1 mr-1 px-1">
-                    🤖: How can I help you today?
-                </span>
-            HTML);
+        render(view('assistant', [
+            'answer' => 'How can I help you today?',
+        ]));
 
         while (true) {
             $message = ask('<span class="mt-1 mx-1">🍻:</span>');
