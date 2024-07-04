@@ -2,42 +2,43 @@
 
 namespace App\Tools;
 
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Storage;
-use function Laravel\Prompts\info;
 use App\Attributes\Description;
+use Illuminate\Support\Facades\Storage;
 
 #[Description('Write content to an existing file at the specified path. Use this when you need to write content to a file.')]
 final class WriteToFile {
 
     public function handle(
-        #[Description('File path to write content to')]
+        #[Description('Relative File path to write content to')]
         string $file_path,
 
         #[Description('Content to write to the file')]
         string $content,
     ): string {
 
-        $basePath = base_path($file_path);
+        // Make sure it's a relative path
+        if (str_contains($file_path, Storage::path(DIRECTORY_SEPARATOR))) {
+            $file_path = str_replace(Storage::path(DIRECTORY_SEPARATOR), '', $file_path);
+        }
 
-        if (Storage::exists($basePath)) {
+        if (Storage::exists($file_path)) {
             // Get the file content
-            $fileContent = Storage::get($basePath);
+            $fileContent = Storage::get($file_path);
 
             // Append the new content to the file
             return 'The file already exists in the path, Make sure to merge your suggestion with the existing file without any breaking changes. Once, they are merged, call the update_file function. The current contents of the file are '. $fileContent;
         }
 
-        $directory = dirname($basePath);
+        $directory = dirname($file_path);
 
         // Ensure the directory exists
         if (!Storage::exists($directory)) {
             Storage::makeDirectory($directory, 0755, true);
         }
 
-        Storage::put($basePath, $content);
-        info('The file has been created successfully at '.$file_path);
-        return 'The file has been created successfully at '.$file_path;
+        Storage::put($file_path, $content);
+
+        return 'Created File: '.$file_path;
     }
 
 }

@@ -2,18 +2,17 @@
 
 namespace App\Services;
 
-use App\Tools\UpdateFile;
-use App\Tools\WriteToFile;
 use App\Tools\ListFiles;
 use App\Tools\ReadFile;
+use App\Tools\UpdateFile;
+use App\Tools\WriteToFile;
+use App\Traits\HasTools;
 use Exception;
-use Illuminate\Support\Facades\Log;
 use OpenAI;
 use OpenAI\Client;
 use OpenAI\Responses\Threads\Runs\ThreadRunResponse;
-use App\Traits\HasTools;
 use function Laravel\Prompts\spin;
-use function Laravel\Prompts\info;
+use function Termwind\render;
 
 class ChatAssistant
 {
@@ -27,7 +26,9 @@ class ChatAssistant
      */
     public function __construct()
     {
-        $this->client = OpenAI::client(config('droid.ai_key'));
+        $this->client = OpenAI::client(config('droid.api_key'));
+
+        // register the tools
         $this->register([
             WriteToFile::class,
             UpdateFile::class,
@@ -39,8 +40,7 @@ class ChatAssistant
 
     public function createAssistant()
     {
-
-        return $this->client->assistants()->create([
+       return $this->client->assistants()->create([
             'name' => 'Droid Dev',
             'model' => config('droid.ai_model'),
             'description' => 'Droid Dev is a code generation assistant for Web applications',
@@ -53,7 +53,7 @@ class ChatAssistant
             Understand the Feature Request
 
             Thoroughly read the provided feature request or bug fix instructions and ask for clarification if needed.
-            List Existing Files and Directories to Understand the Codebase and Structure.
+            List Existing Files and Directories to Understand the Codebase and Structure and if any framework is used.
 
             Use the list_files function to list all files and subdirectories in the specified path to understand the current structure.
             Create or Update Necessary Files
@@ -64,7 +64,9 @@ class ChatAssistant
             Model Code: If applicable, generate or modify models. Use read_file and update_file functions if the file exists.
             Migrations: Create or modify database migrations.
             Tests: Write feature tests to ensure the new functionality works as expected. Do not make changes to .env files.
-            Ensure that any new code is properly formatted and follows best practices. If existing files need to be modified, append the new code appropriately without overwriting the existing content.',
+            Instructions to the user: Provide clear instructions on how to test the new feature or bug fix and suggest any additional manual steps needed like runnign a command.
+            Ensure that any new code is properly formatted and follows best practices. If existing files need to be modified, append the new code appropriately without overwriting the existing content.
+            Always provide the answers in html format when not using the tools provided. ',
             'tools' => array_values($this->registered_tools),
         ]);
 
@@ -73,12 +75,19 @@ class ChatAssistant
     public function createThread()
     {
         return spin(
-            fn () => $this->client->threads()->create([]),
+            fn () => $this->client->threads()->create([
+                'messages' => [
+                    [
+                        'role' => 'assistant',
+                        'content' => 'The base path for this project is '.getcwd(),
+                    ],
+                ],
+            ]),
             'Creating New Thread...'
         );
     }
 
-    public function getAnswer($thread, $message)
+    public function getAnswer($thread, $message): string
     {
         spin(
             fn () => $this->client->threads()->messages()->create($thread->id, [
@@ -101,7 +110,7 @@ class ChatAssistant
         return $this->loadAnswer($threadRun);
     }
 
-    public function loadAnswer(ThreadRunResponse $threadRun)
+    public function loadAnswer(ThreadRunResponse $threadRun): string
     {
         $threadRun = spin(
             fn () => $this->retrieveThread($threadRun),
@@ -130,7 +139,14 @@ class ChatAssistant
             threadId: $threadRun->threadId,
         );
 
-        return $messageList->data[0]->content[0]->text->value;
+        $answer = $messageList->data[0]->content[0]->text->value;
+        render(<<<HTML
+                <pre class="mt-1 mr-1 px-1">
+                    🤖: $answer
+                </pre>
+            HTML);
+
+        return $answer;
     }
 
     public function retrieveThread($threadRun)

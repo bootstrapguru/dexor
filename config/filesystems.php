@@ -8,7 +8,7 @@ return [
             'driver' => 'local',
             'root' => getcwd(),
         ],
-        'app' => [
+        'home' => [
             'driver' => 'local',
             'root' => $_SERVER['HOME'],
         ],

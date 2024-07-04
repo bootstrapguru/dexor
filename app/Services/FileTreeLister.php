@@ -18,7 +18,7 @@ class FileTreeLister
 
     public function listTree(string $path = null): string
     {
-        $path = $path ?? Storage::path('/');
+        $path = $path ?? Storage::path(DIRECTORY_SEPARATOR);
 
         if (!File::exists($path) || !File::isDirectory($path)) {
             return "The path {$path} does not exist or is not a directory.";
@@ -29,9 +29,9 @@ class FileTreeLister
 
     protected function loadGitignore(): void
     {
-        $gitignorePath = base_path('.gitignore');
+        $gitignorePath = Storage::path('.gitignore');
 
-        if (Storage::exists($gitignorePath)) {
+        if (File::exists($gitignorePath)) {
             $patterns = File::lines($gitignorePath);
 
             foreach ($patterns as $pattern) {
@@ -43,7 +43,7 @@ class FileTreeLister
                 }
 
                 // Normalize patterns by removing leading slashes and handling wildcards
-                $pattern = ltrim($pattern, '/');
+                $pattern = ltrim($pattern, DIRECTORY_SEPARATOR);
                 $pattern = str_replace('**', '*', $pattern);
 
                 // Add to exclude array
@@ -57,14 +57,14 @@ class FileTreeLister
         $output = '';
 
         try {
-            $items = Storage::directories($path);
+            $items = File::directories($path);
             $files = File::files($path);
         } catch (DirectoryNotFoundException $e) {
             throw new DirectoryNotFoundException("Error: " . $e->getMessage());
         }
 
         foreach ($items as $index => $directory) {
-            $relativePath = str_replace(base_path() . '/', '', $directory);
+            $relativePath = str_replace(Storage::path(DIRECTORY_SEPARATOR), '', $directory);
             $directoryName = basename($directory);
 
             if ($this->isExcluded($relativePath) || $this->isExcluded($directoryName) || File::isDirectory($directory) && is_link($directory)) {
@@ -76,7 +76,7 @@ class FileTreeLister
         }
 
         foreach ($files as $file) {
-            $relativePath = str_replace(base_path() . '/', '', $file);
+            $relativePath = str_replace(Storage::path(DIRECTORY_SEPARATOR), '', $file);
             $fileName = basename($file);
 
             if ($this->isExcluded($relativePath) || $this->isExcluded($fileName)) {

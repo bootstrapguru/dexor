@@ -11,6 +11,7 @@ use ReflectionParameter;
 use RuntimeException;
 use App\Attributes\Description;
 use function Laravel\Prompts\info;
+use function Termwind\render;
 
 /**
  * Trait HasTools
@@ -93,6 +94,9 @@ trait HasTools {
         return $handle_method->invoke(new $tool_class->name, ...$params);
     }
 
+    /**
+     * @throws ReflectionException
+     */
     public function handleTools($toolCalls): array {
 
         $toolOutputs = [];
@@ -103,6 +107,18 @@ trait HasTools {
                 'tool_call_id' => $toolCall['id'],
                 'output'       => $output,
             ];
+
+            $name = $toolCall['function']['name'];
+
+            render(<<<HTML
+                <pre>
+                    <dl>
+                        <dt>👉 $name: </dt>
+                        <dd>$output</dd>
+                    </dl>
+                </pre>
+            HTML);
+
         }
 
         return $toolOutputs;

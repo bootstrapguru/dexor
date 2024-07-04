@@ -9,7 +9,7 @@ return [
     /*
      * API Key
      */
-    'ai_key' => env('OPENAI_API_KEY'),
+    'api_key' => env('DROID_API_KEY'),
 
     /*
      * OpenAI Model

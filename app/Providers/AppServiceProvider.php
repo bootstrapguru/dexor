@@ -2,16 +2,21 @@
 
 namespace App\Providers;
 
+use App\Utils\OnBoardingSteps;
+use Dotenv\Dotenv;
+use Exception;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
     /**
      * Bootstrap any application services.
+     * @throws Exception
      */
     public function boot(): void
     {
-        //
+        $onboarding = new OnBoardingSteps();
+        $onboarding->loadConfigFile();
     }
 
     /**

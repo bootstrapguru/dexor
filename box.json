@@ -7,7 +7,8 @@
         "vendor"
     ],
     "files": [
-        "composer.json"
+        "composer.json",
+        "droid_config"
     ],
     "exclude-composer-files": false,
     "compression": "GZ",

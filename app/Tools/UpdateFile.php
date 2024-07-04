@@ -2,10 +2,8 @@
 
 namespace App\Tools;
 
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Storage;
-use function Laravel\Prompts\info;
 use App\Attributes\Description;
+use Illuminate\Support\Facades\Storage;
 
 #[Description('Update the content of an existing file at the specified path. Use this when you need to update the existing of a file after write_to_file returns a suggestion to merge the content.')]
 final class UpdateFile {
@@ -18,7 +16,12 @@ final class UpdateFile {
         string $content,
     ): string {
 
-        $basePath = base_path($file_path);
+        // Make sure it's a relative path
+        if (str_contains($file_path, Storage::path(DIRECTORY_SEPARATOR))) {
+            $file_path = str_replace(Storage::path(DIRECTORY_SEPARATOR), '', $file_path);
+        }
+
+        $basePath = Storage::path($file_path);
         $directory = dirname($basePath);
 
         // Ensure the directory exists
@@ -27,7 +30,7 @@ final class UpdateFile {
         }
 
         Storage::put($basePath, $content);
-        info('The file has been updated successfully at '.$file_path);
+
         return 'The file has been updated successfully at '.$file_path;
     }
 

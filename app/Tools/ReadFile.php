@@ -4,7 +4,6 @@ namespace App\Tools;
 
 use App\Attributes\Description;
 use Illuminate\Support\Facades\Storage;
-use function Laravel\Prompts\info;
 
 #[Description('Read content from an existing file at the specified path. Use this when you need to read content from a file.')]
 final class ReadFile {
@@ -17,8 +16,6 @@ final class ReadFile {
         $basePath = Storage::path($file_path);
 
         if (Storage::exists($basePath)) {
-            info('Reading file content from ' . $basePath);
-            // Get the file content
             return Storage::get($basePath);
         }
 
