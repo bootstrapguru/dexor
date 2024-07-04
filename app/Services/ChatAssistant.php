@@ -110,6 +110,9 @@ class ChatAssistant
         return $this->loadAnswer($threadRun);
     }
 
+    /**
+     * @throws \ReflectionException
+     */
     public function loadAnswer(ThreadRunResponse $threadRun): string
     {
         $threadRun = spin(
@@ -121,6 +124,7 @@ class ChatAssistant
             $requiredAction = $threadRun->requiredAction->toArray();
             $toolCalls = $requiredAction['submit_tool_outputs']['tool_calls'];
 
+            render('Tool Calls');
             $toolOutputs = $this->handleTools($toolCalls);
 
             $response = $this->client->threads()->runs()->submitToolOutputs(
@@ -141,9 +145,9 @@ class ChatAssistant
 
         $answer = $messageList->data[0]->content[0]->text->value;
         render(<<<HTML
-                <pre class="mt-1 mr-1 px-1">
-                    🤖: $answer
-                </pre>
+                <div class="mt-1 mr-1 px-1">
+                    🤖: <pre>$answer</pre>
+                </div>
             HTML);
 
         return $answer;

@@ -111,13 +111,14 @@ trait HasTools {
             $name = $toolCall['function']['name'];
 
             render(<<<HTML
-                <pre>
-                    <dl>
-                        <dt>👉 $name: </dt>
-                        <dd>$output</dd>
-                    </dl>
-                </pre>
-            HTML);
+                <div class="text-green-300">
+                    <div class="font-bold">✅ $name: </div>
+                    <div>
+                        <pre>
+                            $output</pre>
+                        </div>
+                    </div>
+                HTML);
 
         }
 

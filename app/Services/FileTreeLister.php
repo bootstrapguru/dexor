@@ -24,7 +24,9 @@ class FileTreeLister
             return "The path {$path} does not exist or is not a directory.";
         }
 
-        return $this->listDirectoryContents($path);
+        $list = $this->listDirectoryContents($path);
+
+        return $list;
     }
 
     protected function loadGitignore(): void

@@ -17,6 +17,7 @@
     ],
     "require": {
         "php": "^8.2.0",
+        "illuminate/view": "^11.5",
         "laravel-zero/framework": "^11.0.0",
         "openai-php/client": "^0.10.1"
     },

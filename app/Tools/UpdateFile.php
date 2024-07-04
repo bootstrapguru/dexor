@@ -21,15 +21,14 @@ final class UpdateFile {
             $file_path = str_replace(Storage::path(DIRECTORY_SEPARATOR), '', $file_path);
         }
 
-        $basePath = Storage::path($file_path);
-        $directory = dirname($basePath);
+        $directory = dirname($file_path);
 
         // Ensure the directory exists
         if (!Storage::exists($directory)) {
             Storage::makeDirectory($directory, 0755, true);
         }
 
-        Storage::put($basePath, $content);
+        Storage::put($file_path, $content);
 
         return 'The file has been updated successfully at '.$file_path;
     }

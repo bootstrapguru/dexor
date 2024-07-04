@@ -5,6 +5,7 @@ namespace App\Tools;
 use App\Attributes\Description;
 use App\Services\FileTreeLister;
 use Symfony\Component\Finder\Exception\DirectoryNotFoundException;
+use function Termwind\render;
 
 #[Description('List all files and sub directories in the specified path. Use this when you need to list all files and directories.')]
 final class ListFiles {
@@ -14,9 +15,13 @@ final class ListFiles {
         string $path,
     ): string {
 
+        render('ListFiles before'. $path);
+
         try {
             $fileTreeLister = new FileTreeLister();
-            return $fileTreeLister->listTree($path);
+            $list = $fileTreeLister->listTree($path);
+            render('ListFiles after'. $list);
+            return $list;
         } catch (DirectoryNotFoundException $e) {
             return $e->getMessage();
         }

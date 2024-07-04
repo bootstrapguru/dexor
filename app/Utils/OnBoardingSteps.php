@@ -76,8 +76,10 @@ class OnBoardingSteps
     /**
      * @throws Exception
      */
-    public function assistantExists() {
+    public function assistantExists(): bool
+    {
         $chatAssistant = new ChatAssistant;
+
         if (!config('droid.assistant_id')) {
 
             $answer = confirm('🤖: Looks like you have not set up your assistant yet. Do you want me create it now?');
@@ -92,10 +94,16 @@ class OnBoardingSteps
                 'Creating an assistant...'
             );
 
+            if (!$response) {
+                error('Failed to create the assistant');
+                return false;
+            }
             $this->setConfigValue('DROID_ASSISTANT_ID', $response->id);
             render('<div class="px-1 pt-1">🤖: <span class="font-bold bg-green-300 text-black">'.$response->name.'</span> has been created successfully 🎉.</div>');
             return true;
         }
+
+        return true;
     }
 
     /**
