@@ -12,6 +12,7 @@ use function Laravel\Prompts\error;
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\spin;
 use function Laravel\Prompts\text;
+use function Laravel\Prompts\textarea;
 use function Termwind\ask;
 use function Termwind\render;
 
@@ -29,6 +30,7 @@ class OnBoardingSteps
             && $this->viewsFolderExists()
             && $this->APIKeyExists()
             && $this->modelExists()
+            && $this->promptExists()
             && $this->assistantExists());
     }
 
@@ -62,6 +64,24 @@ class OnBoardingSteps
 
             $this->setConfigValue('DROID_MODEL', $model);
             Config::set('droid.model', $model);
+        }
+
+        return true;
+    }
+
+    /**
+     * @throws Exception
+     */
+    private function promptExists(): bool
+    {
+        if (!config('droid.prompt')) {
+            $prompt = textarea(
+                label: '🤖: Enter the prompt to use for the assistant',
+                default: config('droid.default_prompt'),
+                rows: 20
+            );
+
+            $this->setConfigValue('DROID_PROMPT', $prompt);
         }
 
         return true;
@@ -151,6 +171,11 @@ class OnBoardingSteps
         if (!$this->configurationFileExists()) {
             error('Failed to set the configuration value');
             return false;
+        }
+
+        if (strpos($value, "\n") !== false) {
+            // Wrap multiline value in double quotes
+            $value = '"' . addslashes($value) . '"';
         }
 
         $config = Storage::disk('home')->get($this->configFile);

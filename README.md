@@ -52,10 +52,6 @@ droid
 
 This will display a list of available commands and options. For more detailed command usage, you can append the `--help` flag to any command:
 
-```bash
-droid command:example --help
-```
-
 ## Documentation
 
 For full documentation and advanced usage, please visit [droid.dev](https://droid.dev/).
