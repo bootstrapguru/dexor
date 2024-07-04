@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
 use Symfony\Component\Finder\Exception\DirectoryNotFoundException;
 
 class FileTreeLister
@@ -17,7 +18,7 @@ class FileTreeLister
 
     public function listTree(string $path = null): string
     {
-        $path = $path ?? base_path();
+        $path = $path ?? Storage::path('/');
 
         if (!File::exists($path) || !File::isDirectory($path)) {
             return "The path {$path} does not exist or is not a directory.";
@@ -30,7 +31,7 @@ class FileTreeLister
     {
         $gitignorePath = base_path('.gitignore');
 
-        if (File::exists($gitignorePath)) {
+        if (Storage::exists($gitignorePath)) {
             $patterns = File::lines($gitignorePath);
 
             foreach ($patterns as $pattern) {
@@ -56,7 +57,7 @@ class FileTreeLister
         $output = '';
 
         try {
-            $items = File::directories($path);
+            $items = Storage::directories($path);
             $files = File::files($path);
         } catch (DirectoryNotFoundException $e) {
             throw new DirectoryNotFoundException("Error: " . $e->getMessage());
