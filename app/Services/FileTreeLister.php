@@ -16,11 +16,11 @@ class FileTreeLister
         $this->loadGitignore();
     }
 
-    public function listTree(string $path = null): string
+    public function listTree(?string $path = null): string
     {
         $path = $path ?? Storage::path(DIRECTORY_SEPARATOR);
 
-        if (!File::exists($path) || !File::isDirectory($path)) {
+        if (! File::exists($path) || ! File::isDirectory($path)) {
             return "The path {$path} does not exist or is not a directory.";
         }
 
@@ -62,7 +62,7 @@ class FileTreeLister
             $items = File::directories($path);
             $files = File::files($path);
         } catch (DirectoryNotFoundException $e) {
-            throw new DirectoryNotFoundException("Error: " . $e->getMessage());
+            throw new DirectoryNotFoundException('Error: '.$e->getMessage());
         }
 
         foreach ($items as $index => $directory) {
@@ -73,8 +73,8 @@ class FileTreeLister
                 continue;
             }
 
-            $output .= $prefix . '├── ' . $directoryName . PHP_EOL;
-            $output .= $this->listDirectoryContents($directory, $prefix . ($index === array_key_last($items) && empty($files) ? '    ' : '│   '));
+            $output .= $prefix.'├── '.$directoryName.PHP_EOL;
+            $output .= $this->listDirectoryContents($directory, $prefix.($index === array_key_last($items) && empty($files) ? '    ' : '│   '));
         }
 
         foreach ($files as $file) {
@@ -85,7 +85,7 @@ class FileTreeLister
                 continue;
             }
 
-            $output .= $prefix . '├── ' . $fileName . PHP_EOL;
+            $output .= $prefix.'├── '.$fileName.PHP_EOL;
         }
 
         return $output;

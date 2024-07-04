@@ -7,18 +7,17 @@ use Dotenv\Dotenv;
 use Exception;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
+
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\error;
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\spin;
 use function Laravel\Prompts\text;
 use function Laravel\Prompts\textarea;
-use function Termwind\ask;
 use function Termwind\render;
 
 class OnBoardingSteps
 {
-
     private string $configFile = '.droid_config';
 
     /**
@@ -26,17 +25,17 @@ class OnBoardingSteps
      */
     public function isCompleted(): bool
     {
-        return ($this->configurationFileExists()
+        return $this->configurationFileExists()
             && $this->viewsFolderExists()
             && $this->APIKeyExists()
             && $this->modelExists()
             && $this->promptExists()
-            && $this->assistantExists());
+            && $this->assistantExists();
     }
 
     private function viewsFolderExists(): bool
     {
-        if (!Storage::disk('home')->exists('.droid_views')) {
+        if (! Storage::disk('home')->exists('.droid_views')) {
             try {
                 Storage::disk('home')->makeDirectory('.droid_views');
             } catch (Exception $ex) {
@@ -54,7 +53,7 @@ class OnBoardingSteps
      */
     private function modelExists(): bool
     {
-        if (!config('droid.model')) {
+        if (! config('droid.model')) {
             $model = select(
                 label: '🤖 Choose the default Model for the assistant',
                 options: ['gpt-4o', 'gpt-4-turbo', 'gpt-3.5'],
@@ -73,7 +72,7 @@ class OnBoardingSteps
      */
     private function promptExists(): bool
     {
-        if (!config('droid.prompt')) {
+        if (! config('droid.prompt')) {
             $prompt = textarea(
                 label: '🤖: Enter the prompt to use for the assistant',
                 default: config('droid.default_prompt'),
@@ -91,7 +90,7 @@ class OnBoardingSteps
      */
     private function configurationFileExists(): bool
     {
-        if (!Storage::disk('home')->exists($this->configFile)) {
+        if (! Storage::disk('home')->exists($this->configFile)) {
             try {
                 // create the config file from the internal config file
                 Storage::disk('home')->put($this->configFile, '');
@@ -108,7 +107,7 @@ class OnBoardingSteps
      */
     private function APIKeyExists(): bool
     {
-        if (!config('droid.api_key')) {
+        if (! config('droid.api_key')) {
             $apiKey = text(
                 label: '🤖: Enter your OpenAI API key to continue',
                 placeholder: 'sk-xxxxxx-xxxxxx-xxxxxx-xxxxxx',
@@ -127,7 +126,7 @@ class OnBoardingSteps
     {
         $chatAssistant = new ChatAssistant;
 
-        if (!config('droid.assistant_id')) {
+        if (! config('droid.assistant_id')) {
 
             $confirmed = confirm(
                 label: 'No assistant found. Do you want to create an assistant now?',
@@ -136,10 +135,11 @@ class OnBoardingSteps
                 hint: 'This will create an assistant on OpenAI with the provided API key'
             );
 
-            if (!$confirmed) {
+            if (! $confirmed) {
                 render(view('assistant', [
-                    'answer' => 'Okay, you can always run `droid` to set up your assistant later'
+                    'answer' => 'Okay, you can always run `droid` to set up your assistant later',
                 ]));
+
                 return false;
             }
 
@@ -148,14 +148,16 @@ class OnBoardingSteps
                 'Creating an assistant...'
             );
 
-            if (!$response) {
+            if (! $response) {
                 error('Failed to create the assistant');
+
                 return false;
             }
             $this->setConfigValue('DROID_ASSISTANT_ID', $response->id);
             render(view('assistant', [
-                'answer' => $response->name . ' has been created successfully 🎉'
+                'answer' => $response->name.' has been created successfully 🎉',
             ]));
+
             return true;
         }
 
@@ -167,14 +169,15 @@ class OnBoardingSteps
      */
     protected function setConfigValue($key, $value): bool
     {
-        if (!$this->configurationFileExists()) {
+        if (! $this->configurationFileExists()) {
             error('Failed to set the configuration value');
+
             return false;
         }
 
         if (strpos($value, "\n") !== false) {
             // Wrap multiline value in double quotes
-            $value = '"' . addslashes($value) . '"';
+            $value = '"'.addslashes($value).'"';
         }
 
         $config = Storage::disk('home')->get($this->configFile);
@@ -191,10 +194,12 @@ class OnBoardingSteps
         if (Storage::disk('home')->put($this->configFile, $config)) {
             // Reload the environment file
             $this->loadConfigFile();
+
             return true;
         }
 
         error('Failed to set the configuration value');
+
         return false;
     }
 
@@ -212,7 +217,7 @@ class OnBoardingSteps
 
             foreach ($envValues as $key => $value) {
                 $parsedKey = strtolower(str_replace('DROID_', '', $key));
-                Config::set('droid.' . $parsedKey, $value);
+                Config::set('droid.'.$parsedKey, $value);
             }
 
             return true;

@@ -4,11 +4,12 @@ namespace App\Tools;
 
 use App\Attributes\Description;
 use Illuminate\Support\Facades\Storage;
+
 use function Termwind\render;
 
 #[Description('Read content from an existing file at the specified path. Use this when you need to read content from a file.')]
-final class ReadFile {
-
+final class ReadFile
+{
     public function handle(
         #[Description('Absolute File path to read content from')]
         string $file_path,
@@ -24,6 +25,7 @@ final class ReadFile {
                 'name' => 'ReadFile',
                 'output' => $file_path,
             ]));
+
             return Storage::get($file_path);
         }
 
@@ -35,5 +37,4 @@ final class ReadFile {
 
         return $output;
     }
-
 }

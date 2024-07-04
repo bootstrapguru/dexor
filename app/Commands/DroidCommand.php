@@ -6,8 +6,9 @@ use App\Services\ChatAssistant;
 use App\Utils\OnBoardingSteps;
 use Exception;
 use Illuminate\Console\Command;
-use function Termwind\{ask, render};
 
+use function Termwind\ask;
+use function Termwind\render;
 
 class DroidCommand extends Command
 {
@@ -21,7 +22,7 @@ class DroidCommand extends Command
     public function handle(): int
     {
         $onBoardingSteps = new OnBoardingSteps();
-        if (!$onBoardingSteps->isCompleted()) {
+        if (! $onBoardingSteps->isCompleted()) {
             return self::FAILURE;
         }
 
@@ -39,7 +40,7 @@ class DroidCommand extends Command
                 break;
             }
 
-           $chatAssistant->getAnswer($threadRun, $message);
+            $chatAssistant->getAnswer($threadRun, $message);
         }
 
         return self::SUCCESS;

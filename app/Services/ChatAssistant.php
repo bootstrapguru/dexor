@@ -11,12 +11,12 @@ use Exception;
 use OpenAI;
 use OpenAI\Client;
 use OpenAI\Responses\Threads\Runs\ThreadRunResponse;
+
 use function Laravel\Prompts\spin;
 use function Termwind\render;
 
 class ChatAssistant
 {
-
     use HasTools;
 
     private Client $client;
@@ -40,7 +40,7 @@ class ChatAssistant
 
     public function createAssistant()
     {
-       return $this->client->assistants()->create([
+        return $this->client->assistants()->create([
             'name' => 'Droid Dev',
             'model' => config('droid.model'),
             'description' => 'Droid Dev is a code generation assistant for Web applications',
@@ -98,7 +98,7 @@ class ChatAssistant
             'Fetching response...'
         );
 
-        if ($threadRun->status  === 'requires_action' && $threadRun->requiredAction->type === 'submit_tool_outputs') {
+        if ($threadRun->status === 'requires_action' && $threadRun->requiredAction->type === 'submit_tool_outputs') {
             $requiredAction = $threadRun->requiredAction->toArray();
             $toolCalls = $requiredAction['submit_tool_outputs']['tool_calls'];
 
@@ -128,7 +128,7 @@ class ChatAssistant
 
     public function retrieveThread($threadRun)
     {
-        while(in_array($threadRun->status, ['queued', 'in_progress'])) {
+        while (in_array($threadRun->status, ['queued', 'in_progress'])) {
             $threadRun = $this->client->threads()->runs()->retrieve(
                 threadId: $threadRun->threadId,
                 runId: $threadRun->id,
@@ -137,5 +137,4 @@ class ChatAssistant
 
         return $threadRun;
     }
-
 }
