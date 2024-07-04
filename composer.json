@@ -25,7 +25,6 @@
     },
     "require-dev": {
         "laravel-zero/framework": "^11.0.0",
-        "laravel/pint": "^1.15.2",
         "mockery/mockery": "^1.6.11",
         "pestphp/pest": "^2.34.7"
     },
