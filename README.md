@@ -1,6 +1,6 @@
 # Droid
 
-Welcome to **Droid**, your trusty companion for automating and streamlining your development tasks. Droid is here to help you stay productive by automating repetitive tasks, identifying and fixing bugs, writing comprehensive test cases, and maintaining a consistent codebase.
+Welcome to **Droid**, your trusty companion for automating and streamlining your development tasks. Droid is here to help you stay productive by automating repetitive tasks, identifying and fixing bugs, writing comprehensive test cases, and maintaining a consistent codebase. Checkout the [documentation](https://docs.droid.dev/) to get started!
 
 
 <p align="center">
