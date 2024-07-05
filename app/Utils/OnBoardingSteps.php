@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Storage;
 
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\error;
+use function Laravel\Prompts\password;
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\spin;
 use function Laravel\Prompts\text;
@@ -56,7 +57,7 @@ class OnBoardingSteps
         if (! config('droid.model')) {
             $model = select(
                 label: '🤖 Choose the default Model for the assistant',
-                options: ['gpt-4o', 'gpt-4-turbo', 'gpt-3.5'],
+                options: ['gpt-4o', 'gpt-4-turbo', 'gpt-4-turbo-preview	', 'gpt-3.5-turbo'],
                 default: 'gpt-4o',
                 hint: 'The model to use for the assistant. You can change this later in the configuration file'
             );
@@ -108,7 +109,7 @@ class OnBoardingSteps
     private function APIKeyExists(): bool
     {
         if (! config('droid.api_key')) {
-            $apiKey = text(
+            $apiKey = password(
                 label: '🤖: Enter your OpenAI API key to continue',
                 placeholder: 'sk-xxxxxx-xxxxxx-xxxxxx-xxxxxx',
                 hint: 'You can find your API key in your OpenAI dashboard'
