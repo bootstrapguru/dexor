@@ -4,7 +4,6 @@ import { defineConfig } from 'vitepress'
 export default defineConfig({
   title: "Droid Docs",
   description: "AI Robot that codes for you",
-    base: '/droid.dev/',
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
       nav: [
