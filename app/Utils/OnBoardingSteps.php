@@ -57,7 +57,7 @@ class OnBoardingSteps
         if (! config('droid.model')) {
             $model = select(
                 label: '🤖 Choose the default Model for the assistant',
-                options: ['gpt-4o', 'gpt-4-turbo', 'gpt-4-turbo-preview	', 'gpt-3.5-turbo'],
+                options: ['gpt-4o', 'gpt-4-turbo', 'gpt-4-turbo-preview\t', 'gpt-3.5-turbo'],
                 default: 'gpt-4o',
                 hint: 'The model to use for the assistant. You can change this later in the configuration file'
             );
@@ -143,6 +143,23 @@ class OnBoardingSteps
 
                 return false;
             }
+
+            // Prompt for model and prompt if not set
+            $model = config('droid.model') ?: select(
+                label: '🤖 Choose the Model for the new assistant',
+                options: ['gpt-4o', 'gpt-4-turbo', 'gpt-4-turbo-preview', 'gpt-3.5-turbo'],
+                default: 'gpt-3.5-turbo',
+                hint: 'The model to use for the assistant. You can change this later in the configuration file'
+            );
+            $prompt = config('droid.prompt') ?: textarea(
+                label: '🤖: Enter the prompt to use for the assistant',
+                default: 'You are a helpful assistant.',
+                rows: 10
+            );
+
+            // Store model and prompt in the configuration file
+            $this->setConfigValue('DROID_MODEL', $model);
+            $this->setConfigValue('DROID_PROMPT', $prompt);
 
             $response = spin(
                 fn () => $chatAssistant->createAssistant(),

@@ -50,8 +50,7 @@ class ChatAssistant
         $existingProject = Project::where('path', $projectPath)->first();
 
         if ($existingProject) {
-            $assistant = $existingProject->assistant;
-            return $assistant;
+            return $existingProject->assistant;
         } else {
             $userChoice = ask("No assistant found for the current project. Do you want to use the default assistant? (yes/no)");
 
