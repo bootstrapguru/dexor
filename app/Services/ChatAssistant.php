@@ -96,7 +96,7 @@ class ChatAssistant
         $folderName = basename($path);
 
         $assistant = form()
-            ->text(label: 'What is the name of the assistant?', default: ucfirst($folderName.' Project'), required: true, name: 'name')
+            ->text(label: 'What is the name of the assistant?', default: ucfirst($folderName . ' Project'), required: true, name: 'name')
             ->text(label: 'What is the description of the assistant? (optional)', name: 'description')
             ->select(
                 label: '🤖 Choose the Model for the assistant',
@@ -165,34 +165,30 @@ class ChatAssistant
 
         return spin(
             function () use ($thread) {
-                $connector = new AIConnector;
-                $chatRequest = new ChatRequest($thread, $this->registered_tools);
-                $response = $connector->send($chatRequest)->json();
-
-                $choice = $response['choices'][0];
-
-                return $this->handleTools($thread, $choice);
+                return $this->getAIResponse($thread);
             },
             'Fetching response from AI...'
         );
     }
 
     /**
-     * Handle tool calls made by the AI assistant.
+     * Get the AI response and handle tools if necessary.
      *
      * @param $thread
-     * @param $choice
      * @return string
      * @throws ReflectionException
      * @throws Exception
      */
-    public function handleTools($thread, $choice): string
+    private function getAIResponse($thread): string
     {
-        $answer = $choice['message']['content'];
+        $connector = new AIConnector;
+        $chatRequest = new ChatRequest($thread, $this->registered_tools);
+        $response = $connector->send($chatRequest)->json();
+        $choice = $response['choices'][0];
 
-        $thread->messages()->create($choice['message']);
+        // First handle tools if present
+        while ($choice['finish_reason'] === 'tool_calls') {
 
-        if ($choice['finish_reason'] === 'tool_calls') {
             foreach ($choice['message']['tool_calls'] as $toolCall) {
                 try {
                     $toolResponse = $this->call($toolCall['function']['name'], json_decode($toolCall['function']['arguments'], true));
@@ -203,17 +199,24 @@ class ChatAssistant
                         'name' => $toolCall['function']['name'],
                         'content' => $toolResponse,
                     ]);
+
                 } catch (Exception $e) {
                     Log::error('Error calling tool: ' . $e->getMessage());
                     throw new Exception('Error calling tool: ' . $e->getMessage());
                 }
             }
 
-            // return the tool response to the AI to continue the conversation
-            return $this->getAnswer($thread, '');
+            // Fetch the next part of the response including the tool calls
+            $chatRequest = new ChatRequest($thread, $this->registered_tools);
+            $response = $connector->send($chatRequest)->json();
+            $choice = $response['choices'][0];
         }
 
+        // Handle the final answer
+        $answer = $choice['message']['content'];
+        $thread->messages()->create($choice['message']);
         render(view('assistant', ['answer' => $answer]));
+        
         return $answer;
     }
 }
