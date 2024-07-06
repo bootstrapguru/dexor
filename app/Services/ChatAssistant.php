@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Thread;
 use App\Tools\ExecuteCommand;
 use App\Tools\ListFiles;
 use App\Tools\ReadFile;
@@ -12,6 +13,7 @@ use Exception;
 use OpenAI;
 use OpenAI\Client;
 use OpenAI\Responses\Threads\Runs\ThreadRunResponse;
+use Illuminate\Support\Str;
 
 use function Laravel\Prompts\spin;
 use function Termwind\render;
@@ -54,12 +56,23 @@ class ChatAssistant
 
     public function createThread()
     {
+        $threadTitle = 'New Thread';
+        $threadFolderPath = getcwd();
+
+        // First, create a new thread in the database
+        $thread = Thread::create([
+            'assistant_id' => config('droid.assistant_id'),
+            'title' => $threadTitle,
+            'folder_path' => $threadFolderPath,
+        ]);
+
+        // Then, create a thread on the OpenAI API
         return spin(
-            fn () => $this->client->threads()->create([
+            fn() => $this->client->threads()->create([
                 'messages' => [
                     [
                         'role' => 'assistant',
-                        'content' => 'The base path for this project is '.getcwd(),
+                        'content' => 'The base path for this project is ' . $threadFolderPath,
                     ],
                 ],
             ]),
@@ -73,7 +86,7 @@ class ChatAssistant
     public function getAnswer($thread, $message): string
     {
         spin(
-            fn () => $this->client->threads()->messages()->create($thread->id, [
+            fn() => $this->client->threads()->messages()->create($thread->id, [
                 'role' => 'user',
                 'content' => $message,
             ]),
@@ -81,7 +94,7 @@ class ChatAssistant
         );
 
         $threadRun = spin(
-            fn () => $this->client->threads()->runs()->create(
+            fn() => $this->client->threads()->runs()->create(
                 threadId: $thread->id,
                 parameters: [
                     'assistant_id' => config('droid.assistant_id'),
@@ -99,7 +112,7 @@ class ChatAssistant
     public function loadAnswer(ThreadRunResponse $threadRun): string
     {
         $threadRun = spin(
-            fn () => $this->retrieveThread($threadRun),
+            fn() => $this->retrieveThread($threadRun),
             'Fetching response...'
         );
 

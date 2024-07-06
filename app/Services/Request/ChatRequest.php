@@ -55,7 +55,7 @@ class ChatRequest extends Request implements HasBody
         ];
     }
 
-    public function __construct(private string $prompt)
+    public function __construct(private readonly string $prompt)
     {
     }
 }
