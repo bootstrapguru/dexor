@@ -65,6 +65,9 @@ class ChatAssistant
         );
     }
 
+    /**
+     * @throws \ReflectionException
+     */
     public function getAnswer($thread, $message): string
     {
         spin(
