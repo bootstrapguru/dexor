@@ -7,7 +7,9 @@ use Dotenv\Dotenv;
 use Exception;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Artisan; // Import Artisan facade to run commands
 
+use Symfony\Component\Process\Process;
 use function Laravel\Prompts\password;
 use function Laravel\Prompts\spin;
 use function Termwind\render;
@@ -21,7 +23,7 @@ class OnBoardingSteps
      */
     public function isCompleted(): bool
     {
-        return $this->configurationFileExists()
+        return  $this->configurationFileExists()
             && $this->viewsFolderExists()
             && $this->APIKeyExists();
     }
@@ -83,7 +85,7 @@ class OnBoardingSteps
             return false;
         }
 
-        if (strpos($value, "\n") !== false) {
+        if (str_contains($value, "\n")) {
             $value = '"'.addslashes($value).'"';
         }
 

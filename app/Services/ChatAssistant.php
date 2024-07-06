@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\Assistant;
 use App\Models\Project;
-use App\Models\Thread;
 use App\Services\Request\ChatRequest;
 use App\Tools\ExecuteCommand;
 use App\Tools\ListFiles;
@@ -13,14 +12,7 @@ use App\Tools\UpdateFile;
 use App\Tools\WriteToFile;
 use App\Traits\HasTools;
 use Exception;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Config;
-use OpenAI;
-use OpenAI\Client;
-use OpenAI\Responses\Threads\Runs\ThreadRunResponse;
-
 use ReflectionException;
-use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\form;
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\spin;
@@ -30,15 +22,11 @@ class ChatAssistant
 {
     use HasTools;
 
-    private Client $client;
-
     /**
      * @throws Exception
      */
     public function __construct()
     {
-        $this->client = OpenAI::client(config('droid.api_key'));
-
         // register the tools
         $this->register([
             ExecuteCommand::class,
@@ -99,7 +87,7 @@ class ChatAssistant
         $folderName = basename($path);
 
         $assistant = form()
-            ->text(label: 'What is the name of the assistant?', default: $folderName.' ', required: true, name: 'name')
+            ->text(label: 'What is the name of the assistant?', default: ucfirst($folderName.' Project'), required: true, name: 'name')
             ->text(label: 'What is the description of the assistant? (optional)', name: 'description')
             ->select(
                 label: '🤖 Choose the Model for the assistant',
@@ -136,7 +124,7 @@ class ChatAssistant
 
         return spin(
             fn() => $project->threads()->create([
-                'assistant_id' => Cache::get('assistant_id'),
+                'assistant_id' => $project->assistant_id,
                 'title' => $threadTitle
             ]),
             'Creating New Thread...'
