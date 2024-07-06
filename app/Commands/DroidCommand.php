@@ -3,6 +3,7 @@
 namespace App\Commands;
 
 use App\Services\ChatAssistant;
+use App\Tools\ExecuteCommand;
 use App\Utils\OnBoardingSteps;
 use Exception;
 use Illuminate\Console\Command;

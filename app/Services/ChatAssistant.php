@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Tools\ExecuteCommand;
 use App\Tools\ListFiles;
 use App\Tools\ReadFile;
 use App\Tools\UpdateFile;
@@ -30,6 +31,7 @@ class ChatAssistant
 
         // register the tools
         $this->register([
+            ExecuteCommand::class,
             WriteToFile::class,
             UpdateFile::class,
             ListFiles::class,
