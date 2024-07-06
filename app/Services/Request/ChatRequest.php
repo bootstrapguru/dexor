@@ -2,6 +2,7 @@
 
 namespace App\Services\Request;
 
+use App\Models\Thread;
 use Saloon\Contracts\Body\HasBody;
 use Saloon\Enums\Method;
 use Saloon\Http\Request;
@@ -17,6 +18,12 @@ class ChatRequest extends Request implements HasBody
      * @var Method
      */
     protected Method $method = Method::POST;
+
+    public function __construct(
+        public Thread $thread,
+        public array $tools
+    ) {
+    }
 
     /**
      * The endpoint
@@ -47,15 +54,24 @@ class ChatRequest extends Request implements HasBody
      */
     public function defaultBody(): array
     {
+
+        $assistant = $this->thread->project->assistant;
+
+        $messages = [
+            [
+                'role' => 'system',
+                'content' => $assistant->prompt,
+
+            ],
+            ...$this->thread->messages,
+        ];
+
         return [
-            'model' => 'gpt-3.5-turbo',
-            'prompt' => $this->prompt,
-            'max_tokens' => 100,
-            'temperature' => 0.7,
+            'model' => $assistant->model,
+            'messages' => $messages,
+            'tools' => array_values($this->tools)
         ];
     }
 
-    public function __construct(private readonly string $prompt)
-    {
-    }
+
 }

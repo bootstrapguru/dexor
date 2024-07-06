@@ -12,7 +12,7 @@ class CreateThreadsTable extends Migration
             $table->id();
             $table->foreignId('assistant_id')->constrained('assistants')->onDelete('cascade');
             $table->string('title');
-            $table->string('folder_path')->nullable();
+            $table->foreignId('project_id')->constrained();
             $table->timestamps();
         });
     }

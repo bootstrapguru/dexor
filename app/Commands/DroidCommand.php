@@ -2,6 +2,7 @@
 
 namespace App\Commands;
 
+use App\Models\Project;
 use App\Services\ChatAssistant;
 use App\Tools\ExecuteCommand;
 use App\Utils\OnBoardingSteps;
@@ -10,6 +11,7 @@ use App\Services\AIConnector;
 use Exception;
 use Illuminate\Console\Command;
 
+use Illuminate\Support\Facades\DB;
 use function Termwind\ask;
 use function Termwind\render;
 
@@ -30,11 +32,8 @@ class DroidCommand extends Command
         }
 
         $chatAssistant = new ChatAssistant;
+        $thread = $chatAssistant->createThread();
 
-        $apiKey = config('services.openai.api_key');
-        $connector = new AIConnector;
-
-        $threadRun = $chatAssistant->createThread();
         render(view('assistant', [
             'answer' => 'How can I help you today?',
         ]));
@@ -46,10 +45,7 @@ class DroidCommand extends Command
                 break;
             }
 
-            $chatRequest = new ChatRequest($message);
-            $response = $connector->send($chatRequest)->json();
-
-            $chatAssistant->getAnswer($threadRun, $response['choices'][0]['text']);
+            $chatAssistant->getAnswer($thread, $message);
         }
 
         return self::SUCCESS;

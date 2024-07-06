@@ -12,9 +12,9 @@ class CreateMessagesTable extends Migration
             $table->id();
             $table->foreignId('thread_id')->constrained('threads')->onDelete('cascade');
             $table->string('role');
-            $table->text('content');
+            $table->text('content')->nullable();
             $table->string('name')->nullable();
-            $table->foreignId('tool_id')->nullable()->constrained('tools')->onDelete('set null');
+            $table->string('tool_call_id')->nullable();
             $table->json('tool_calls')->nullable();
             $table->timestamps();
         });
