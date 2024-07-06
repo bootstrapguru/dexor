@@ -49,7 +49,10 @@ class ChatAssistant
         ]);
     }
 
-    public function handleProjectSetup(): Project
+    /**
+     * @throws Exception
+     */
+    public function getCurrentProject(): Project
     {
         $projectPath = getcwd();
         $project = Project::where('path', $projectPath)->first();
@@ -86,8 +89,6 @@ class ChatAssistant
             ]);
         }
 
-        Cache::put('assistant_id', $project->assistant_id);
-
         return $project;
     }
 
@@ -98,7 +99,7 @@ class ChatAssistant
         $folderName = basename($path);
 
         $assistant = form()
-            ->text(label: 'What is the name of the assistant?', default: $folderName, required: true, name: 'name')
+            ->text(label: 'What is the name of the assistant?', default: $folderName.' ', required: true, name: 'name')
             ->text(label: 'What is the description of the assistant? (optional)', name: 'description')
             ->select(
                 label: '🤖 Choose the Model for the assistant',
@@ -130,7 +131,7 @@ class ChatAssistant
      */
     public function createThread()
     {
-        $project = $this->handleProjectSetup();
+        $project = $this->getCurrentProject();
         $threadTitle = 'New Thread';
 
         return spin(
@@ -198,11 +199,8 @@ class ChatAssistant
             return $this->getAnswer($thread, '');
         }
 
-
         render(view('assistant', ['answer' => $answer]));
-
         return $answer;
-
     }
 
 }

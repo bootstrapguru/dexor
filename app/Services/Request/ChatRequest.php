@@ -36,32 +36,17 @@ class ChatRequest extends Request implements HasBody
     }
 
     /**
-     * Default headers for the request
-     *
-     * @return array
-     */
-    protected function defaultHeaders(): array
-    {
-        return [
-            'Content-Type' => 'application/json',
-        ];
-    }
-
-    /**
      * Data to be sent in the body of the request
      *
      * @return array
      */
     public function defaultBody(): array
     {
-
         $assistant = $this->thread->project->assistant;
 
-        $messages = [
-            [
+        $messages = [[
                 'role' => 'system',
                 'content' => $assistant->prompt,
-
             ],
             ...$this->thread->messages,
         ];
@@ -72,6 +57,4 @@ class ChatRequest extends Request implements HasBody
             'tools' => array_values($this->tools)
         ];
     }
-
-
 }

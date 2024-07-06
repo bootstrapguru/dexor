@@ -25,16 +25,7 @@ class AIConnector extends Connector
     protected function defaultHeaders(): array
     {
         return [
-            'Accept' => 'application/vnd.Nexhealth+json; version=2',
             'Authorization' => 'Bearer ' . config('droid.api_key'),
         ];
-    }
-
-    /**
-     * Default HTTP client options
-     */
-    protected function defaultConfig(): array
-    {
-        return [];
     }
 }

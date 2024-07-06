@@ -77,15 +77,6 @@ class OnBoardingSteps
     /**
      * @throws Exception
      */
-    private function projectSetup(): bool
-    {
-        $chatAssistant = new ChatAssistant();
-        return $chatAssistant->handleProjectSetup();
-    }
-
-    /**
-     * @throws Exception
-     */
     protected function setConfigValue($key, $value): bool
     {
         if (! $this->configurationFileExists()) {
