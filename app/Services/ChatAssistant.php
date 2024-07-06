@@ -13,6 +13,7 @@ use App\Tools\WriteToFile;
 use App\Traits\HasTools;
 use Exception;
 use ReflectionException;
+use Illuminate\Support\Facades\Log;
 use function Laravel\Prompts\form;
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\spin;
@@ -23,6 +24,7 @@ class ChatAssistant
     use HasTools;
 
     /**
+     * ChatAssistant constructor.
      * @throws Exception
      */
     public function __construct()
@@ -38,6 +40,9 @@ class ChatAssistant
     }
 
     /**
+     * Get the current project based on the working directory.
+     *
+     * @return Project
      * @throws Exception
      */
     public function getCurrentProject(): Project
@@ -50,7 +55,7 @@ class ChatAssistant
                 'No existing project found. Would you like to create a new assistant or use an existing one?',
                 [
                     'create_new' => 'Create New Assistant',
-                    'use_existing' => 'Use Existing Assistant'
+                    'use_existing' => 'Use Existing Assistant',
                 ]
             );
 
@@ -64,11 +69,11 @@ class ChatAssistant
                         $assistantId = $this->createNewAssistant()->id;
                     } else {
                         $options = $assistants->pluck('name', 'id')->toArray();
-                        $assistantId = select('Select an assistant', $options);
+                        $assistantId = select('Select an assistant.', $options);
                     }
                     break;
                 default:
-                    throw new Exception('Invalid choice');
+                    throw new Exception('Invalid choice.');
             }
 
             $project = Project::create([
@@ -80,10 +85,14 @@ class ChatAssistant
         return $project;
     }
 
-    public function createNewAssistant()
+    /**
+     * Create a new assistant using a form prompt.
+     *
+     * @return Assistant
+     */
+    public function createNewAssistant(): Assistant
     {
         $path = getcwd();
-        // get Folder name from path
         $folderName = basename($path);
 
         $assistant = form()
@@ -100,7 +109,7 @@ class ChatAssistant
                 label: 'Customize the prompt for the assistant?',
                 default: config('droid.prompt'),
                 required: true,
-                hint: 'Make sure to include any details of the project that the assistant should know about. For example, type of framework, language, etc.',
+                hint: 'Include project details like framework, language, etc.',
                 rows: 20,
                 name: 'prompt'
             )
@@ -115,6 +124,9 @@ class ChatAssistant
     }
 
     /**
+     * Create a new thread for the current project.
+     *
+     * @return Thread
      * @throws Exception
      */
     public function createThread()
@@ -125,13 +137,18 @@ class ChatAssistant
         return spin(
             fn() => $project->threads()->create([
                 'assistant_id' => $project->assistant_id,
-                'title' => $threadTitle
+                'title' => $threadTitle,
             ]),
             'Creating New Thread...'
         );
     }
 
     /**
+     * Get an answer from the AI assistant.
+     *
+     * @param $thread
+     * @param $message
+     * @return string
      * @throws ReflectionException
      * @throws Exception
      */
@@ -146,16 +163,26 @@ class ChatAssistant
 
         $thread->load('messages');
 
-        $connector = new AIConnector;
-        $chatRequest = new ChatRequest($thread, $this->registered_tools);
-        $response = $connector->send($chatRequest)->json();
+        return spin(
+            function () use ($thread) {
+                $connector = new AIConnector;
+                $chatRequest = new ChatRequest($thread, $this->registered_tools);
+                $response = $connector->send($chatRequest)->json();
 
-        $choice = $response['choices'][0];
+                $choice = $response['choices'][0];
 
-        return $this->handleTools($thread, $choice);
+                return $this->handleTools($thread, $choice);
+            },
+            'Fetching response from AI...'
+        );
     }
 
     /**
+     * Handle tool calls made by the AI assistant.
+     *
+     * @param $thread
+     * @param $choice
+     * @return string
      * @throws ReflectionException
      * @throws Exception
      */
@@ -166,7 +193,6 @@ class ChatAssistant
         $thread->messages()->create($choice['message']);
 
         if ($choice['finish_reason'] === 'tool_calls') {
-
             foreach ($choice['message']['tool_calls'] as $toolCall) {
                 try {
                     $toolResponse = $this->call($toolCall['function']['name'], json_decode($toolCall['function']['arguments'], true));
@@ -177,8 +203,8 @@ class ChatAssistant
                         'name' => $toolCall['function']['name'],
                         'content' => $toolResponse,
                     ]);
-
                 } catch (Exception $e) {
+                    Log::error('Error calling tool: ' . $e->getMessage());
                     throw new Exception('Error calling tool: ' . $e->getMessage());
                 }
             }
@@ -190,5 +216,4 @@ class ChatAssistant
         render(view('assistant', ['answer' => $answer]));
         return $answer;
     }
-
 }
