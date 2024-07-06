@@ -2,48 +2,60 @@
 
 namespace App\Services\Request;
 
-class ChatRequest
-{
-    protected $endpoint = '/chat/completions';
-    protected $apiKey;
-    protected $baseUrl;
+use Saloon\Contracts\Body\HasBody;
+use Saloon\Enums\Method;
+use Saloon\Http\Request;
+use Saloon\Traits\Body\HasJsonBody;
 
-    public function __construct($apiKey, $baseUrl = 'https://api.openai.com/v1')
+class ChatRequest extends Request implements HasBody
+{
+    use HasJsonBody;
+
+    /**
+     * The HTTP method
+     *
+     * @var Method
+     */
+    protected Method $method = Method::POST;
+
+    /**
+     * The endpoint
+     *
+     * @return string
+     */
+    public function resolveEndpoint(): string
     {
-        $this->apiKey = $apiKey;
-        $this->baseUrl = $baseUrl;
+        return '/chat/completions';
     }
 
-    public function createPayload($prompt, $model = 'gpt-3.5-turbo', $maxTokens = 100, $temperature = 0.7)
+    /**
+     * Default headers for the request
+     *
+     * @return array
+     */
+    protected function defaultHeaders(): array
     {
         return [
-            'model' => $model,
-            'prompt' => $prompt,
-            'max_tokens' => $maxTokens,
-            'temperature' => $temperature,
+            'Content-Type' => 'application/json',
         ];
     }
 
-    public function send($payload)
+    /**
+     * Data to be sent in the body of the request
+     *
+     * @return array
+     */
+    public function defaultBody(): array
     {
-        $ch = curl_init();
+        return [
+            'model' => 'gpt-3.5-turbo',
+            'prompt' => $this->prompt,
+            'max_tokens' => 100,
+            'temperature' => 0.7,
+        ];
+    }
 
-        curl_setopt($ch, CURLOPT_URL, $this->baseUrl . $this->endpoint);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
-
-        $headers = [];
-        $headers[] = 'Content-Type: application/json';
-        $headers[] = 'Authorization: Bearer ' . $this->apiKey;
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-
-        $result = curl_exec($ch);
-        if (curl_errno($ch)) {
-            throw new \Exception('Error:' . curl_error($ch));
-        }
-        curl_close($ch);
-
-        return json_decode($result, true);
+    public function __construct(private string $prompt)
+    {
     }
 }

@@ -6,6 +6,7 @@ use App\Services\ChatAssistant;
 use App\Tools\ExecuteCommand;
 use App\Utils\OnBoardingSteps;
 use App\Services\Request\ChatRequest;
+use App\Services\AIConnector;
 use Exception;
 use Illuminate\Console\Command;
 
@@ -31,7 +32,7 @@ class DroidCommand extends Command
         $chatAssistant = new ChatAssistant;
 
         $apiKey = config('services.openai.api_key');
-        $chatRequest = new ChatRequest($apiKey);
+        $connector = new AIConnector;
 
         $threadRun = $chatAssistant->createThread();
         render(view('assistant', [
@@ -45,8 +46,8 @@ class DroidCommand extends Command
                 break;
             }
 
-            $payload = $chatRequest->createPayload($message);
-            $response = $chatRequest->send($payload);
+            $chatRequest = new ChatRequest($message);
+            $response = $connector->send($chatRequest)->json();
 
             $chatAssistant->getAnswer($threadRun, $response['choices'][0]['text']);
         }
