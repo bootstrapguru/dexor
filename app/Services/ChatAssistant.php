@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Models\Thread;
+use App\Models\Assistant;
+use App\Models\Project;
 use App\Tools\ExecuteCommand;
 use App\Tools\ListFiles;
 use App\Tools\ReadFile;
@@ -17,6 +19,7 @@ use Illuminate\Support\Str;
 
 use function Laravel\Prompts\spin;
 use function Termwind\render;
+use function Termwind\ask;
 
 class ChatAssistant
 {
@@ -37,21 +40,53 @@ class ChatAssistant
             WriteToFile::class,
             UpdateFile::class,
             ListFiles::class,
-            ReadFile::class,
         ]);
 
     }
 
     public function createAssistant()
     {
-        return $this->client->assistants()->create([
-            'name' => 'Droid Dev',
-            'model' => config('droid.model'),
-            'description' => 'Droid Dev is a code generation assistant for Web applications',
-            'instructions' => config('droid.prompt'),
-            'tools' => array_values($this->registered_tools),
-        ]);
+        $projectPath = getcwd();
+        $existingProject = Project::where('path', $projectPath)->first();
 
+        if ($existingProject) {
+            $assistant = $existingProject->assistant;
+            return $assistant;
+        } else {
+            $userChoice = ask("No assistant found for the current project. Do you want to use the default assistant? (yes/no)");
+
+            if (strtolower($userChoice) === 'yes') {
+                $assistant = Assistant::find(config('droid.assistant_id'));
+                Project::create([
+                    'path' => $projectPath,
+                    'assistant_id' => $assistant->id,
+                ]);
+
+                return $assistant;
+            } else {
+                $assistant = $this->client->assistants()->create([
+                    'name' => 'Droid Dev',
+                    'model' => config('droid.model'),
+                    'description' => 'Droid Dev is a code generation assistant for Web applications',
+                    'instructions' => config('droid.prompt'),
+                    'tools' => array_values($this->registered_tools),
+                ]);
+
+                Assistant::create([
+                    'id' => $assistant->id,
+                    'name' => $assistant->name,
+                    'description' => $assistant->description,
+                    'model' => config('droid.model'),
+                ]);
+
+                Project::create([
+                    'path' => $projectPath,
+                    'assistant_id' => $assistant->id,
+                ]);
+
+                return $assistant;
+            }
+        }
     }
 
     public function createThread()
