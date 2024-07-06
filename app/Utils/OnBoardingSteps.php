@@ -2,17 +2,13 @@
 
 namespace App\Utils;
 
-use App\Services\ChatAssistant;
 use Dotenv\Dotenv;
 use Exception;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Artisan; // Import Artisan facade to run commands
+use Illuminate\Support\Facades\Storage; // Import Artisan facade to run commands
 
-use Symfony\Component\Process\Process;
 use function Laravel\Prompts\password;
-use function Laravel\Prompts\spin;
-use function Termwind\render;
 
 class OnBoardingSteps
 {
@@ -23,7 +19,7 @@ class OnBoardingSteps
      */
     public function isCompleted(): bool
     {
-        return  $this->configurationFileExists()
+        return $this->configurationFileExists()
             && $this->viewsFolderExists()
             && $this->APIKeyExists();
     }
@@ -101,6 +97,7 @@ class OnBoardingSteps
 
         if (Storage::disk('home')->put($this->configFile, $config)) {
             $this->loadConfigFile();
+
             return true;
         }
 

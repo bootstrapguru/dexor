@@ -13,7 +13,7 @@ use App\Tools\WriteToFile;
 use App\Traits\HasTools;
 use Exception;
 use ReflectionException;
-use Illuminate\Support\Facades\Log;
+
 use function Laravel\Prompts\form;
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\spin;
@@ -24,7 +24,6 @@ class ChatAssistant
     use HasTools;
 
     /**
-     * ChatAssistant constructor.
      * @throws Exception
      */
     public function __construct()
@@ -40,9 +39,6 @@ class ChatAssistant
     }
 
     /**
-     * Get the current project based on the working directory.
-     *
-     * @return Project
      * @throws Exception
      */
     public function getCurrentProject(): Project
@@ -50,7 +46,7 @@ class ChatAssistant
         $projectPath = getcwd();
         $project = Project::where('path', $projectPath)->first();
 
-        if (!$project) {
+        if (! $project) {
             $userChoice = select(
                 'No existing project found. Would you like to create a new assistant or use an existing one?',
                 [
@@ -69,11 +65,11 @@ class ChatAssistant
                         $assistantId = $this->createNewAssistant()->id;
                     } else {
                         $options = $assistants->pluck('name', 'id')->toArray();
-                        $assistantId = select('Select an assistant.', $options);
+                        $assistantId = select('Select an assistant', $options);
                     }
                     break;
                 default:
-                    throw new Exception('Invalid choice.');
+                    throw new Exception('Invalid choice');
             }
 
             $project = Project::create([
@@ -85,18 +81,14 @@ class ChatAssistant
         return $project;
     }
 
-    /**
-     * Create a new assistant using a form prompt.
-     *
-     * @return Assistant
-     */
-    public function createNewAssistant(): Assistant
+    public function createNewAssistant()
     {
         $path = getcwd();
+        // get Folder name from path
         $folderName = basename($path);
 
         $assistant = form()
-            ->text(label: 'What is the name of the assistant?', default: ucfirst($folderName . ' Project'), required: true, name: 'name')
+            ->text(label: 'What is the name of the assistant?', default: ucfirst($folderName.' Project'), required: true, name: 'name')
             ->text(label: 'What is the description of the assistant? (optional)', name: 'description')
             ->select(
                 label: '🤖 Choose the Model for the assistant',
@@ -109,7 +101,7 @@ class ChatAssistant
                 label: 'Customize the prompt for the assistant?',
                 default: config('droid.prompt'),
                 required: true,
-                hint: 'Include project details like framework, language, etc.',
+                hint: 'Make sure to include any details of the project that the assistant should know about. For example, type of framework, language, etc.',
                 rows: 20,
                 name: 'prompt'
             )
@@ -124,9 +116,6 @@ class ChatAssistant
     }
 
     /**
-     * Create a new thread for the current project.
-     *
-     * @return Thread
      * @throws Exception
      */
     public function createThread()
@@ -135,7 +124,7 @@ class ChatAssistant
         $threadTitle = 'New Thread';
 
         return spin(
-            fn() => $project->threads()->create([
+            fn () => $project->threads()->create([
                 'assistant_id' => $project->assistant_id,
                 'title' => $threadTitle,
             ]),
@@ -144,11 +133,6 @@ class ChatAssistant
     }
 
     /**
-     * Get an answer from the AI assistant.
-     *
-     * @param $thread
-     * @param $message
-     * @return string
      * @throws ReflectionException
      * @throws Exception
      */
@@ -163,31 +147,26 @@ class ChatAssistant
 
         $thread->load('messages');
 
-        return spin(
-            function () use ($thread) {
-                return $this->getAIResponse($thread);
-            },
-            'Fetching response from AI...'
-        );
-    }
-
-    /**
-     * Get the AI response and handle tools if necessary.
-     *
-     * @param $thread
-     * @return string
-     * @throws ReflectionException
-     * @throws Exception
-     */
-    private function getAIResponse($thread): string
-    {
         $connector = new AIConnector;
         $chatRequest = new ChatRequest($thread, $this->registered_tools);
         $response = $connector->send($chatRequest)->json();
+
         $choice = $response['choices'][0];
 
-        // First handle tools if present
-        while ($choice['finish_reason'] === 'tool_calls') {
+        return $this->handleTools($thread, $choice);
+    }
+
+    /**
+     * @throws ReflectionException
+     * @throws Exception
+     */
+    public function handleTools($thread, $choice): string
+    {
+        $answer = $choice['message']['content'];
+
+        $thread->messages()->create($choice['message']);
+
+        if ($choice['finish_reason'] === 'tool_calls') {
 
             foreach ($choice['message']['tool_calls'] as $toolCall) {
                 try {
@@ -201,22 +180,16 @@ class ChatAssistant
                     ]);
 
                 } catch (Exception $e) {
-                    Log::error('Error calling tool: ' . $e->getMessage());
-                    throw new Exception('Error calling tool: ' . $e->getMessage());
+                    throw new Exception('Error calling tool: '.$e->getMessage());
                 }
             }
 
-            // Fetch the next part of the response including the tool calls
-            $chatRequest = new ChatRequest($thread, $this->registered_tools);
-            $response = $connector->send($chatRequest)->json();
-            $choice = $response['choices'][0];
+            // return the tool response to the AI to continue the conversation
+            return $this->getAnswer($thread, '');
         }
 
-        // Handle the final answer
-        $answer = $choice['message']['content'];
-        $thread->messages()->create($choice['message']);
         render(view('assistant', ['answer' => $answer]));
-        
+
         return $answer;
     }
 }

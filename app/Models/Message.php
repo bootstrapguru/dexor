@@ -15,11 +15,11 @@ class Message extends Model
         'content',
         'name',
         'tool_call_id',
-        'tool_calls'
+        'tool_calls',
     ];
 
     protected $casts = [
-        'tool_calls' => 'array'
+        'tool_calls' => 'array',
     ];
 
     public function thread()

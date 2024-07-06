@@ -2,16 +2,11 @@
 
 namespace App\Commands;
 
-use App\Models\Project;
 use App\Services\ChatAssistant;
-use App\Tools\ExecuteCommand;
 use App\Utils\OnBoardingSteps;
-use App\Services\Request\ChatRequest;
-use App\Services\AIConnector;
 use Exception;
 use Illuminate\Console\Command;
 
-use Illuminate\Support\Facades\DB;
 use function Termwind\ask;
 use function Termwind\render;
 

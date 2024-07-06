@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use Saloon\Http\Connector;
-use Saloon\Http\Response;
 use Saloon\Traits\Plugins\AcceptsJson;
 use Saloon\Traits\Plugins\AlwaysThrowOnErrors;
 
@@ -25,7 +24,7 @@ class AIConnector extends Connector
     protected function defaultHeaders(): array
     {
         return [
-            'Authorization' => 'Bearer ' . config('droid.api_key'),
+            'Authorization' => 'Bearer '.config('droid.api_key'),
         ];
     }
 }

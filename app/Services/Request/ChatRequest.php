@@ -14,21 +14,16 @@ class ChatRequest extends Request implements HasBody
 
     /**
      * The HTTP method
-     *
-     * @var Method
      */
     protected Method $method = Method::POST;
 
     public function __construct(
         public Thread $thread,
         public array $tools
-    ) {
-    }
+    ) {}
 
     /**
      * The endpoint
-     *
-     * @return string
      */
     public function resolveEndpoint(): string
     {
@@ -37,24 +32,22 @@ class ChatRequest extends Request implements HasBody
 
     /**
      * Data to be sent in the body of the request
-     *
-     * @return array
      */
     public function defaultBody(): array
     {
         $assistant = $this->thread->project->assistant;
 
         $messages = [[
-                'role' => 'system',
-                'content' => $assistant->prompt,
-            ],
+            'role' => 'system',
+            'content' => $assistant->prompt,
+        ],
             ...$this->thread->messages,
         ];
 
         return [
             'model' => $assistant->model,
             'messages' => $messages,
-            'tools' => array_values($this->tools)
+            'tools' => array_values($this->tools),
         ];
     }
 }

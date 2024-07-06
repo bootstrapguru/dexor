@@ -14,11 +14,11 @@ class Assistant extends Model
         'model',
         'description',
         'prompt',
-        'tools'
+        'tools',
     ];
 
     protected $casts = [
-        'tools' => 'array'
+        'tools' => 'array',
     ];
 
     public function threads()

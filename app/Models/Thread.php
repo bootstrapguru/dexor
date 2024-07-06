@@ -12,7 +12,7 @@ class Thread extends Model
     protected $fillable = [
         'assistant_id',
         'title',
-        'folder_path'
+        'folder_path',
     ];
 
     public function assistant()
