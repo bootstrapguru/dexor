@@ -22,7 +22,7 @@ final class ExecuteCommand
 
             $output = $process->getOutput();
             render(view('tool', [
-                'name' => 'ExecuteCommand',
+                'name' => 'ExecuteCommand: '.$command,
                 'output' => $output,
             ]));
 
@@ -30,7 +30,7 @@ final class ExecuteCommand
         } catch (ProcessFailedException $exception) {
             $output = 'The command failed: '.$exception->getMessage();
             render(view('tool', [
-                'name' => 'ExecuteCommand',
+                'name' => 'ExecuteCommand Failed: '.$command,
                 'output' => $output,
             ]));
 
