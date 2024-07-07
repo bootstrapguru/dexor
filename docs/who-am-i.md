@@ -6,4 +6,6 @@ As your trusty Droid Dev, I am designed to help you, a human developer, make cha
 
 For a quick introduction, watch the video below:
 
-[![Introduction to Droid Dev](https://img.youtube.com/vi/oLmbafcHCKg/0.jpg)](https://youtu.be/oLmbafcHCKg)
+<a href="https://youtu.be/oLmbafcHCKg" target="_blank">
+  <img src="https://img.youtube.com/vi/oLmbafcHCKg/0.jpg" alt="Introduction to Droid Dev" style="width: 100%; height: 376px;">
+</a>
