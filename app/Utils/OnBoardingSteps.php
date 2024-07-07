@@ -31,7 +31,8 @@ class OnBoardingSteps
             && $this->APIKeyExists()
             && $this->modelExists()
             && $this->promptExists()
-            && $this->assistantExists();
+            && $this->assistantExists()
+            && $this->AIServiceExists();
     }
 
     private function viewsFolderExists(): bool
@@ -57,7 +58,7 @@ class OnBoardingSteps
         if (! config('droid.model')) {
             $model = select(
                 label: '🤖 Choose the default Model for the assistant',
-                options: ['gpt-4o', 'gpt-4-turbo', 'gpt-4-turbo-preview	', 'gpt-3.5-turbo'],
+                options: ['gpt-4o', 'gpt-4-turbo', 'gpt-4-turbo-preview\t', 'gpt-3.5-turbo'],
                 default: 'gpt-4o',
                 hint: 'The model to use for the assistant. You can change this later in the configuration file'
             );
@@ -160,6 +161,24 @@ class OnBoardingSteps
             ]));
 
             return true;
+        }
+
+        return true;
+    }
+
+    /**
+     * @throws Exception
+     */
+    private function AIServiceExists(): bool
+    {
+        if (! config('droid.ai_service')) {
+            $aiService = select(
+                label: '🤖: Choose your AI service',
+                options: ['OpenAI', 'Claude', 'Ollama'],
+                default: 'OpenAI',
+                hint: 'Select the AI service you want to use. You can change this later in the configuration file.'
+            );
+            $this->setConfigValue('DROID_AI_SERVICE', $aiService);
         }
 
         return true;
