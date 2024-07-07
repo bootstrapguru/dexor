@@ -3,7 +3,7 @@
 return [
     'openai' => [
         'api_key' => env('OPENAI_API_KEY'),
-        'endpoint' => 'https://api.openai.com/v1',
+        'base_url' => 'https://api.openai.com/v1',
         'models' => [
             'gpt-3.5-turbo',
             'gpt-4-turbo',
@@ -13,7 +13,7 @@ return [
 
     'claude' => [
         'api_key' => env('CLAUDE_API_KEY'),
-        'endpoint' => 'https://api.claude.com/v1',
+        'base_url' => 'https://api.claude.com/v1',
         'models' => [
             'claude-1',
             'claude-2',

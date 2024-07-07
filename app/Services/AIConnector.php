@@ -11,10 +11,12 @@ class AIConnector extends Connector
     use AcceptsJson, AlwaysThrowOnErrors;
 
     private string $baseUrl;
+    private string $serviceType;
 
-    public function __construct(string $baseUrl)
+    public function __construct(string $serviceType)
     {
-        $this->baseUrl = $baseUrl;
+        $this->serviceType = $serviceType;
+        $this->baseUrl = config("services.{$serviceType}.base_url");
     }
 
     /**
@@ -31,7 +33,7 @@ class AIConnector extends Connector
     protected function defaultHeaders(): array
     {
         return [
-            'Authorization' => 'Bearer '.config('droid.api_key'),
+            'Authorization' => 'Bearer ' . config("services.{$this->serviceType}.api_key"),
         ];
     }
 }

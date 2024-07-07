@@ -21,7 +21,7 @@ class OnBoardingSteps
     {
         return $this->configurationFileExists()
             && $this->viewsFolderExists()
-            && $this->APIKeyExists()
+            && $this->APIKeysExist()
             && $this->setupDatabase($droidCommand);
     }
 
@@ -59,15 +59,20 @@ class OnBoardingSteps
     /**
      * @throws Exception
      */
-    private function APIKeyExists(): bool
+    private function APIKeysExist(): bool
     {
-        if (! config('droid.api_key')) {
-            $apiKey = password(
-                label: '🤖: Enter your OpenAI API key to continue',
-                placeholder: 'sk-xxxxxx-xxxxxx-xxxxxx-xxxxxx',
-                hint: 'You can find your API key in your OpenAI dashboard'
-            );
-            $this->setConfigValue('DROID_API_KEY', $apiKey);
+        $services = ['openai', 'claude']; // List all supported services here
+
+        foreach ($services as $service) {
+            $apiKeyConfigName = strtoupper($service) . '_API_KEY';
+            if (! config("services.{$service}.api_key")) {
+                $apiKey = password(
+                    label: "\uD83E\uDD16: Enter your {$service} API key to continue",
+                    placeholder: 'sk-xxxxxx-xxxxxx-xxxxxx-xxxxxx',
+                    hint: "You can find your API key in your {$service} dashboard"
+                );
+                $this->setConfigValue($apiKeyConfigName, $apiKey);
+            }
         }
 
         return true;
@@ -130,8 +135,8 @@ class OnBoardingSteps
             $envValues = $dotenv->load();
 
             foreach ($envValues as $key => $value) {
-                $parsedKey = strtolower(str_replace('DROID_', '', $key));
-                Config::set('droid.'.$parsedKey, $value);
+                $parsedKey = strtolower(str_replace('_API_KEY', '', $key));
+                Config::set('services.'.strtolower($parsedKey).'.api_key', $value);
             }
 
             return true;
