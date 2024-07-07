@@ -20,13 +20,25 @@ class ChatAssistant
     use HasTools;
 
     private Client $client;
+    private array $baseUrls = [
+        'OpenAI' => 'https://api.openai.com/v1',
+        'Claude' => 'https://api.claude.ai',
+        'Ollama' => 'https://api.ollama.ai',
+    ];
 
     /**
      * @throws Exception
      */
     public function __construct()
     {
-        $this->client = OpenAI::client(config('droid.api_key'));
+        $selectedService = config('droid.ai_service', 'OpenAI');
+        $baseUrl = $this->baseUrls[$selectedService] ?? $this->baseUrls['OpenAI'];
+        
+        // Adjust initialization to use the appropriate base URL
+        $this->client = new Client([
+            'api_key' => config('droid.api_key'),
+            'base_uri' => $baseUrl
+        ]);
 
         // register the tools
         $this->register([
@@ -35,7 +47,6 @@ class ChatAssistant
             ListFiles::class,
             ReadFile::class,
         ]);
-
     }
 
     public function createAssistant()
@@ -47,7 +58,6 @@ class ChatAssistant
             'instructions' => config('droid.prompt'),
             'tools' => array_values($this->registered_tools),
         ]);
-
     }
 
     public function createThread()
