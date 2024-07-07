@@ -23,12 +23,8 @@ class ChatAssistant
 {
     use HasTools;
 
-    /**
-     * @throws Exception
-     */
     public function __construct()
     {
-        // register the tools
         $this->register([
             ExecuteCommand::class,
             WriteToFile::class,
@@ -38,9 +34,6 @@ class ChatAssistant
         ]);
     }
 
-    /**
-     * @throws Exception
-     */
     public function getCurrentProject(): Project
     {
         $projectPath = getcwd();
@@ -84,31 +77,33 @@ class ChatAssistant
     public function createNewAssistant()
     {
         $path = getcwd();
-        // get Folder name from path
         $folderName = basename($path);
+
+        $service = select(
+            'Choose the Service for the assistant',
+            ['openai' => 'OpenAI', 'claude' => 'Claude'],
+            'openai' // Default service is openai
+        );
+
+        $models = [];
+        $servicesConfig = include base_path('config/services.php');
+        if (array_key_exists($service, $servicesConfig)) {
+            $models = $servicesConfig[$service]['models'];
+        }
 
         $assistant = form()
             ->text(label: 'What is the name of the assistant?', default: ucfirst($folderName.' Project'), required: true, name: 'name')
             ->text(label: 'What is the description of the assistant? (optional)', name: 'description')
             ->select(
-                label: '🤖 Choose the Model for the assistant',
-                options: ['gpt-4o', 'gpt-4-turbo', 'gpt-4-turbo-preview', 'gpt-3.5-turbo'],
-                default: 'gpt-3.5-turbo',
-                hint: 'The model to use for the assistant.',
-                name: 'model'
-            )
-            ->select(
-                label: 'Choose the Service for the assistant',
-                options: ['openai' => 'OpenAI', 'claude' => 'Claude'],
-                default: 'openai',
-                required: true,
-                name: 'service'
+                label: 'Choose the Model for the assistant',
+                array_combine($models, $models),
+                reset($models) // Default model
             )
             ->textarea(
                 label: 'Customize the prompt for the assistant?',
                 default: config('droid.prompt') ?? '',
                 required: true,
-                hint: 'Make sure to include any details of the project that the assistant should know about. For example, type of framework, language, etc.',
+                hint: 'Include any project details that the assistant should know about.',
                 rows: 20,
                 name: 'prompt'
             )
@@ -119,13 +114,10 @@ class ChatAssistant
             'description' => $assistant['description'],
             'model' => $assistant['model'],
             'prompt' => $assistant['prompt'],
-            'service' => $assistant['service'], // New field saved
+            'service' => $service,
         ]);
     }
 
-    /**
-     * @throws Exception
-     */
     public function createThread()
     {
         $project = $this->getCurrentProject();
@@ -140,10 +132,6 @@ class ChatAssistant
         );
     }
 
-    /**
-     * @throws ReflectionException
-     * @throws Exception
-     */
     public function getAnswer($thread, $message): string
     {
         if ($message !== null) {
@@ -155,7 +143,6 @@ class ChatAssistant
 
         $thread->load('messages');
 
-        // Fetch the service type directly from the assistant relationship
         $serviceBaseUrl = $thread->assistant->service === 'claude' ? 'https://api.claude.com/v1' : 'https://api.openai.com/v1';
 
         $connector = new AIConnector($serviceBaseUrl);
@@ -167,10 +154,6 @@ class ChatAssistant
         return $this->handleTools($thread, $choice);
     }
 
-    /**
-     * @throws ReflectionException
-     * @throws Exception
-     */
     public function handleTools($thread, $choice): string
     {
         $answer = $choice['message']['content'];
@@ -195,7 +178,6 @@ class ChatAssistant
                 }
             }
 
-            // return the tool response to the AI to continue the conversation
             return $this->getAnswer($thread, null);
         }
 
