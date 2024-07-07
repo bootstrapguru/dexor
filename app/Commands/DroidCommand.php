@@ -22,13 +22,13 @@ class DroidCommand extends Command
     public function handle(): int
     {
         $onBoardingSteps = new OnBoardingSteps();
-        if (! $onBoardingSteps->isCompleted()) {
+        if (! $onBoardingSteps->isCompleted($this)) {
             return self::FAILURE;
         }
 
         $chatAssistant = new ChatAssistant;
+        $thread = $chatAssistant->createThread();
 
-        $threadRun = $chatAssistant->createThread();
         render(view('assistant', [
             'answer' => 'How can I help you today?',
         ]));
@@ -40,7 +40,7 @@ class DroidCommand extends Command
                 break;
             }
 
-            $chatAssistant->getAnswer($threadRun, $message);
+            $chatAssistant->getAnswer($thread, $message);
         }
 
         return self::SUCCESS;

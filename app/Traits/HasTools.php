@@ -97,25 +97,6 @@ trait HasTools
     /**
      * @throws ReflectionException
      */
-    public function handleTools($toolCalls): array
-    {
-
-        $toolOutputs = [];
-
-        foreach ($toolCalls as $toolCall) {
-            $output = $this->call($toolCall['function']['name'], json_decode($toolCall['function']['arguments'], true));
-            $toolOutputs[] = [
-                'tool_call_id' => $toolCall['id'],
-                'output' => $output,
-            ];
-        }
-
-        return $toolOutputs;
-    }
-
-    /**
-     * @throws ReflectionException
-     */
     private function parseToolParameters(ReflectionClass $tool): array
     {
         $parameters = ['type' => 'object'];

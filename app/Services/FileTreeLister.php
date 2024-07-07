@@ -8,7 +8,7 @@ use Symfony\Component\Finder\Exception\DirectoryNotFoundException;
 
 class FileTreeLister
 {
-    protected array $exclude = ['storage'];
+    protected array $exclude = ['storage', 'vendor', 'node_modules'];
 
     public function __construct()
     {
