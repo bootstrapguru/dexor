@@ -9,7 +9,7 @@ return [
         ],
         'home' => [
             'driver' => 'local',
-            'root' => $_SERVER['HOME'],
+            'root' => $_SERVER['HOME'].'/.droid',
         ],
         'root' => [
             'driver' => 'local',

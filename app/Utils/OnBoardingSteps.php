@@ -12,29 +12,30 @@ use function Laravel\Prompts\password;
 
 class OnBoardingSteps
 {
-    private string $configFile = '.droid_config';
+    private string $configFile = '.config';
 
     /**
      * @throws Exception
      */
-    public function isCompleted(): bool
+    public function isCompleted($droidCommand): bool
     {
         return $this->configurationFileExists()
             && $this->viewsFolderExists()
-            && $this->APIKeyExists();
+            && $this->APIKeyExists()
+            && $this->setupDatabase($droidCommand);
     }
 
     private function viewsFolderExists(): bool
     {
-        if (! Storage::disk('home')->exists('.droid_views')) {
+        if (! Storage::disk('home')->exists('views')) {
             try {
-                Storage::disk('home')->makeDirectory('.droid_views');
+                Storage::disk('home')->makeDirectory('views');
             } catch (Exception $ex) {
                 return false;
             }
         }
 
-        Config::set('view.compiled', Storage::disk('home')->path('.droid_views'));
+        Config::set('view.compiled', Storage::disk('home')->path('views'));
 
         return true;
     }
@@ -68,6 +69,18 @@ class OnBoardingSteps
             );
             $this->setConfigValue('DROID_API_KEY', $apiKey);
         }
+
+        return true;
+    }
+
+    protected function setupDatabase($droidCommand): bool
+    {
+        $databasePath = Storage::disk('home')->path('database.sqlite');
+
+        if (!file_exists($databasePath)) {
+            Storage::disk('home')->put('database.sqlite', '');
+        }
+        $droidCommand->call('migrate', ['--force' => true]);
 
         return true;
     }

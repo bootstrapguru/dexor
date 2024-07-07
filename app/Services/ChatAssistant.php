@@ -99,7 +99,7 @@ class ChatAssistant
             )
             ->textarea(
                 label: 'Customize the prompt for the assistant?',
-                default: config('droid.prompt'),
+                default: config('droid.prompt') ?? '',
                 required: true,
                 hint: 'Make sure to include any details of the project that the assistant should know about. For example, type of framework, language, etc.',
                 rows: 20,
@@ -185,7 +185,7 @@ class ChatAssistant
             }
 
             // return the tool response to the AI to continue the conversation
-            return $this->getAnswer($thread, '');
+            return $this->getAnswer($thread, null);
         }
 
         render(view('assistant', ['answer' => $answer]));
