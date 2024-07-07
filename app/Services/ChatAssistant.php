@@ -97,6 +97,13 @@ class ChatAssistant
                 hint: 'The model to use for the assistant.',
                 name: 'model'
             )
+            ->select(
+                label: 'Choose the Service for the assistant',
+                options: ['openai' => 'OpenAI', 'claude' => 'Claude'],
+                default: 'openai',
+                required: true,
+                name: 'service'
+            )
             ->textarea(
                 label: 'Customize the prompt for the assistant?',
                 default: config('droid.prompt') ?? '',
@@ -112,6 +119,7 @@ class ChatAssistant
             'description' => $assistant['description'],
             'model' => $assistant['model'],
             'prompt' => $assistant['prompt'],
+            'service' => $assistant['service'], // New field saved
         ]);
     }
 
@@ -147,7 +155,10 @@ class ChatAssistant
 
         $thread->load('messages');
 
-        $connector = new AIConnector;
+        // Fetch the service type directly from the assistant relationship
+        $serviceBaseUrl = $thread->assistant->service === 'claude' ? 'https://api.claude.com/v1' : 'https://api.openai.com/v1';
+
+        $connector = new AIConnector($serviceBaseUrl);
         $chatRequest = new ChatRequest($thread, $this->registered_tools);
         $response = $connector->send($chatRequest)->json();
 
