@@ -10,12 +10,19 @@ class AIConnector extends Connector
 {
     use AcceptsJson, AlwaysThrowOnErrors;
 
+    private string $baseUrl;
+
+    public function __construct(string $baseUrl)
+    {
+        $this->baseUrl = $baseUrl;
+    }
+
     /**
      * The Base URL of the API
      */
     public function resolveBaseUrl(): string
     {
-        return 'https://api.openai.com/v1';
+        return $this->baseUrl;
     }
 
     /**
