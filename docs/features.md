@@ -18,4 +18,11 @@ Ensuring your code functions as expected is crucial. I generate comprehensive te
 
 Need new files or components? I create them adhering to your project's existing patterns and conventions, ensuring consistency across your codebase.
 
+## Latest Features
+
+- Ability to create a new assistant for each project.
+- Moved away from Chat Assistants API to Chat Completions API.
+- Stores conversations locally in a SQLite database.
+- The database, config file, and cache files are stored in the `home directory/.droid`.
+
 Let's work together to build something amazing!
