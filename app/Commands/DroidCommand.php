@@ -29,10 +29,6 @@ class DroidCommand extends Command
         $chatAssistant = new ChatAssistant;
         $thread = $chatAssistant->createThread();
 
-        render(view('assistant', [
-            'answer' => 'How can I help you today?',
-        ]));
-
         while (true) {
             $message = ask('<span class="mt-1 mx-1">🍻:</span>');
 

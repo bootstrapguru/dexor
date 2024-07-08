@@ -2,9 +2,14 @@
 
 namespace App\Services;
 
+use App\Integrations\Ollama\OllamaConnector;
+use App\Integrations\Claude\ClaudeAIConnector;
+use App\Integrations\OpenAI\OpenAIConnector;
+use App\Integrations\OpenAI\Requests\ChatRequest as OpenAIChatRequest;
+use App\Integrations\Ollama\Requests\ChatRequest as OllamaChatRequest;
+use App\Integrations\Claude\Requests\ChatRequest as ClaudeChatRequest;
 use App\Models\Assistant;
 use App\Models\Project;
-use App\Services\Request\ChatRequest;
 use App\Tools\ExecuteCommand;
 use App\Tools\ListFiles;
 use App\Tools\ReadFile;
@@ -13,8 +18,8 @@ use App\Tools\WriteToFile;
 use App\Traits\HasTools;
 use Exception;
 use ReflectionException;
-
 use function Laravel\Prompts\form;
+use function Laravel\Prompts\note;
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\spin;
 use function Termwind\render;
@@ -23,6 +28,9 @@ class ChatAssistant
 {
     use HasTools;
 
+    /**
+     * @throws ReflectionException
+     */
     public function __construct()
     {
         $this->register([
@@ -86,7 +94,7 @@ class ChatAssistant
         );
 
         $models = [];
-        $servicesConfig = config('services');
+        $servicesConfig = config('aiproviders');
         if (array_key_exists($service, $servicesConfig)) {
             $models = $servicesConfig[$service]['models'];
         }
@@ -97,11 +105,12 @@ class ChatAssistant
             ->select(
                 label: 'Choose the Model for the assistant',
                 options: array_combine($models, $models),
-                default: reset($models) // Default model
+                default: reset($models),
+                name: 'model'
             )
             ->textarea(
                 label: 'Customize the prompt for the assistant?',
-                default: config('droid.prompt') ?? '',
+                default: config('droid.default_prompt') ?? '',
                 required: true,
                 hint: 'Include any project details that the assistant should know about.',
                 rows: 20,
@@ -118,18 +127,39 @@ class ChatAssistant
         ]);
     }
 
+    /**
+     * @throws Exception
+     */
     public function createThread()
     {
         $project = $this->getCurrentProject();
+        $latestThread = $project->threads()->latest()->first();
+
+        if ($latestThread) {
+            $threadChoice = select(
+                label: 'Found Existing thread, do you want to continue the conversation or start new?',
+                options: [
+                    'use_existing' => 'Continue',
+                    'create_new' => 'Start New Thread',
+                ]
+            );
+            if ($threadChoice === 'use_existing') {
+                return $latestThread;
+            }
+        }
+
         $threadTitle = 'New Thread';
 
-        return spin(
+        $thread = spin(
             fn () => $project->threads()->create([
                 'assistant_id' => $project->assistant_id,
                 'title' => $threadTitle,
             ]),
             'Creating New Thread...'
         );
+
+        note('🤖: How can I help you?');
+        return $thread;
     }
 
     public function getAnswer($thread, $message): string
@@ -143,11 +173,21 @@ class ChatAssistant
 
         $thread->load('messages');
 
-        $serviceBaseUrl = $thread->assistant->service === 'claude' ? 'https://api.claude.com/v1' : 'https://api.openai.com/v1';
+        if ($thread->assistant->service === 'claude') {
+            $connector = new ClaudeAIConnector();
+            $chatRequest = new ClaudeChatRequest($thread, $this->registered_tools);
+        }
 
-        $connector = new AIConnector($serviceBaseUrl);
-        $chatRequest = new ChatRequest($thread, $this->registered_tools);
-        $response = $connector->send($chatRequest)->json();
+        else if ($thread->assistant->service === 'ollama') {
+            $connector = new OllamaConnector();
+            $chatRequest = new OllamaChatRequest($thread, $this->registered_tools);
+        }
+        else {
+            $connector = new OpenAIConnector();
+            $chatRequest = new OpenAIChatRequest($thread, $this->registered_tools);
+        }
+
+        $response = spin(fn () => $connector->send($chatRequest)->json(), 'Getting response from '.$thread->assistant->service);
 
         $choice = $response['choices'][0];
 
@@ -185,4 +225,5 @@ class ChatAssistant
 
         return $answer;
     }
+
 }

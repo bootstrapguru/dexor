@@ -65,9 +65,9 @@ class OnBoardingSteps
 
         foreach ($services as $service) {
             $apiKeyConfigName = strtoupper($service) . '_API_KEY';
-            if (! config("services.{$service}.api_key")) {
+            if (! config("aiproviders.{$service}.api_key")) {
                 $apiKey = password(
-                    label: "\uD83E\uDD16: Enter your {$service} API key to continue",
+                    label: "🤖: Enter your {$service} API key to continue",
                     placeholder: 'sk-xxxxxx-xxxxxx-xxxxxx-xxxxxx',
                     hint: "You can find your API key in your {$service} dashboard"
                 );
@@ -136,7 +136,7 @@ class OnBoardingSteps
 
             foreach ($envValues as $key => $value) {
                 $parsedKey = strtolower(str_replace('_API_KEY', '', $key));
-                Config::set('services.'.strtolower($parsedKey).'.api_key', $value);
+                Config::set('aiproviders.'.strtolower($parsedKey).'.api_key', $value);
             }
 
             return true;
