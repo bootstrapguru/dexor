@@ -41,8 +41,8 @@ class ChatAssistant
 
         if (! $project) {
             $userChoice = select(
-                'No existing project found. Would you like to create a new assistant or use an existing one?',
-                [
+                label: 'No existing project found. Would you like to create a new assistant or use an existing one?',
+                options: [
                     'create_new' => 'Create New Assistant',
                     'use_existing' => 'Use Existing Assistant',
                 ]
@@ -58,7 +58,7 @@ class ChatAssistant
                         $assistantId = $this->createNewAssistant()->id;
                     } else {
                         $options = $assistants->pluck('name', 'id')->toArray();
-                        $assistantId = select('Select an assistant', $options);
+                        $assistantId = select(label: 'Select an assistant', options: $options);
                     }
                     break;
                 default:
@@ -80,24 +80,24 @@ class ChatAssistant
         $folderName = basename($path);
 
         $service = select(
-            'Choose the Service for the assistant',
-            ['openai' => 'OpenAI', 'claude' => 'Claude'],
-            'openai' // Default service is openai
+            label: 'Choose the Service for the assistant',
+            options: ['openai' => 'OpenAI', 'claude' => 'Claude'],
+            default: 'openai' // Default service is openai
         );
 
         $models = [];
-        $servicesConfig = include base_path('config/services.php');
+        $servicesConfig = config('services');
         if (array_key_exists($service, $servicesConfig)) {
             $models = $servicesConfig[$service]['models'];
         }
 
         $assistant = form()
-            ->text(label: 'What is the name of the assistant?', default: ucfirst($folderName.' Project'), required: true, name: 'name')
+            ->text(label: 'What is the name of the assistant?', default: ucfirst($folderName . ' Project'), required: true, name: 'name')
             ->text(label: 'What is the description of the assistant? (optional)', name: 'description')
             ->select(
                 label: 'Choose the Model for the assistant',
-                array_combine($models, $models),
-                reset($models) // Default model
+                options: array_combine($models, $models),
+                default: reset($models) // Default model
             )
             ->textarea(
                 label: 'Customize the prompt for the assistant?',
@@ -174,7 +174,7 @@ class ChatAssistant
                     ]);
 
                 } catch (Exception $e) {
-                    throw new Exception('Error calling tool: '.$e->getMessage());
+                    throw new Exception('Error calling tool: ' . $e->getMessage());
                 }
             }
 
