@@ -16,5 +16,4 @@ class OllamaConnector
     {
         return 'http://localhost:11434';
     }
-
 }

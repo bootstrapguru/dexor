@@ -24,7 +24,7 @@ class ClaudeAIConnector extends Connector
     protected function defaultHeaders(): array
     {
         return [
-            'x-api-key' => config("aiproviders.claude.api_key"),
+            'x-api-key' => config('aiproviders.claude.api_key'),
             'anthropic-version' => '2023-06-01',
         ];
     }

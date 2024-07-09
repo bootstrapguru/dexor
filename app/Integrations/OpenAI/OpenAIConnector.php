@@ -24,7 +24,7 @@ class OpenAIConnector extends Connector
     protected function defaultHeaders(): array
     {
         return [
-            'Authorization' => 'Bearer ' . config("aiproviders.openai.api_key"),
+            'Authorization' => 'Bearer '.config('aiproviders.openai.api_key'),
         ];
     }
 }

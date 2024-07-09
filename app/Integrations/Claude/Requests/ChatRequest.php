@@ -41,14 +41,15 @@ class ChatRequest extends Request implements HasBody
             $claudeTool['input_schema'] = $claudeTool['parameters'];
             // unset parameters
             unset($claudeTool['parameters']);
+
             return $claudeTool;
         })->toArray();
 
-        $messages = $this->thread->messages->map(function ($message){
-           return [
-               'role' => $message->role,
-               'content' => $message->content
-           ];
+        $messages = $this->thread->messages->map(function ($message) {
+            return [
+                'role' => $message->role,
+                'content' => $message->content,
+            ];
         });
 
         return [
@@ -56,7 +57,7 @@ class ChatRequest extends Request implements HasBody
             'messages' => $messages,
             'system' => $this->thread->assistant->prompt,
             'tools' => array_values($tools),
-            'max_tokens' => 100
+            'max_tokens' => 100,
         ];
     }
 }

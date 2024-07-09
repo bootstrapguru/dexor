@@ -64,7 +64,7 @@ class OnBoardingSteps
         $services = ['openai', 'claude']; // List all supported services here
 
         foreach ($services as $service) {
-            $apiKeyConfigName = strtoupper($service) . '_API_KEY';
+            $apiKeyConfigName = strtoupper($service).'_API_KEY';
             if (! config("aiproviders.{$service}.api_key")) {
                 $apiKey = password(
                     label: "🤖: Enter your {$service} API key to continue",
@@ -82,7 +82,7 @@ class OnBoardingSteps
     {
         $databasePath = Storage::disk('home')->path('database.sqlite');
 
-        if (!file_exists($databasePath)) {
+        if (! file_exists($databasePath)) {
             Storage::disk('home')->put('database.sqlite', '');
         }
         $droidCommand->call('migrate', ['--force' => true]);

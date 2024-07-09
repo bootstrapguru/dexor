@@ -2,12 +2,12 @@
 
 namespace App\Services;
 
-use App\Integrations\Ollama\OllamaConnector;
 use App\Integrations\Claude\ClaudeAIConnector;
+use App\Integrations\Claude\Requests\ChatRequest as ClaudeChatRequest;
+use App\Integrations\Ollama\OllamaConnector;
+use App\Integrations\Ollama\Requests\ChatRequest as OllamaChatRequest;
 use App\Integrations\OpenAI\OpenAIConnector;
 use App\Integrations\OpenAI\Requests\ChatRequest as OpenAIChatRequest;
-use App\Integrations\Ollama\Requests\ChatRequest as OllamaChatRequest;
-use App\Integrations\Claude\Requests\ChatRequest as ClaudeChatRequest;
 use App\Models\Assistant;
 use App\Models\Project;
 use App\Tools\ExecuteCommand;
@@ -18,6 +18,7 @@ use App\Tools\WriteToFile;
 use App\Traits\HasTools;
 use Exception;
 use ReflectionException;
+
 use function Laravel\Prompts\form;
 use function Laravel\Prompts\note;
 use function Laravel\Prompts\select;
@@ -100,7 +101,7 @@ class ChatAssistant
         }
 
         $assistant = form()
-            ->text(label: 'What is the name of the assistant?', default: ucfirst($folderName . ' Project'), required: true, name: 'name')
+            ->text(label: 'What is the name of the assistant?', default: ucfirst($folderName.' Project'), required: true, name: 'name')
             ->text(label: 'What is the description of the assistant? (optional)', name: 'description')
             ->select(
                 label: 'Choose the Model for the assistant',
@@ -159,6 +160,7 @@ class ChatAssistant
         );
 
         note('🤖: How can I help you?');
+
         return $thread;
     }
 
@@ -176,13 +178,10 @@ class ChatAssistant
         if ($thread->assistant->service === 'claude') {
             $connector = new ClaudeAIConnector();
             $chatRequest = new ClaudeChatRequest($thread, $this->registered_tools);
-        }
-
-        else if ($thread->assistant->service === 'ollama') {
+        } elseif ($thread->assistant->service === 'ollama') {
             $connector = new OllamaConnector();
             $chatRequest = new OllamaChatRequest($thread, $this->registered_tools);
-        }
-        else {
+        } else {
             $connector = new OpenAIConnector();
             $chatRequest = new OpenAIChatRequest($thread, $this->registered_tools);
         }
@@ -214,7 +213,7 @@ class ChatAssistant
                     ]);
 
                 } catch (Exception $e) {
-                    throw new Exception('Error calling tool: ' . $e->getMessage());
+                    throw new Exception('Error calling tool: '.$e->getMessage());
                 }
             }
 
@@ -225,5 +224,4 @@ class ChatAssistant
 
         return $answer;
     }
-
 }

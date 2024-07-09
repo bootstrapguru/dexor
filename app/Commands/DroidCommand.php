@@ -8,7 +8,6 @@ use Exception;
 use Illuminate\Console\Command;
 
 use function Termwind\ask;
-use function Termwind\render;
 
 class DroidCommand extends Command
 {
