@@ -35,8 +35,7 @@ class ChatRequest extends Request implements HasBody
      */
     public function defaultBody(): array
     {
-
-        $tools = collect($this->tools)->map(function ($tool) {
+       $tools = collect($this->tools)->map(function ($tool) {
             $claudeTool = $tool['function'];
             $claudeTool['input_schema'] = $claudeTool['parameters'];
             // unset parameters

@@ -6,8 +6,10 @@ use App\Integrations\Claude\ClaudeAIConnector;
 use App\Integrations\Claude\Requests\ChatRequest as ClaudeChatRequest;
 use App\Integrations\Ollama\OllamaConnector;
 use App\Integrations\Ollama\Requests\ChatRequest as OllamaChatRequest;
+use App\Integrations\Ollama\Requests\ListModelsRequest as OllamaListModelsRequest;
 use App\Integrations\OpenAI\OpenAIConnector;
 use App\Integrations\OpenAI\Requests\ChatRequest as OpenAIChatRequest;
+use App\Integrations\OpenAI\Requests\ListModelsRequest as OpenAIListModelsRequest;
 use App\Models\Assistant;
 use App\Models\Project;
 use App\Tools\ExecuteCommand;
@@ -18,7 +20,8 @@ use App\Tools\WriteToFile;
 use App\Traits\HasTools;
 use Exception;
 use ReflectionException;
-
+use Saloon\Exceptions\Request\FatalRequestException;
+use Saloon\Exceptions\Request\RequestException;
 use function Laravel\Prompts\form;
 use function Laravel\Prompts\note;
 use function Laravel\Prompts\select;
@@ -83,6 +86,11 @@ class ChatAssistant
         return $project;
     }
 
+    /**
+     * @throws FatalRequestException
+     * @throws RequestException
+     * @throws \JsonException
+     */
     public function createNewAssistant()
     {
         $path = getcwd();
@@ -90,23 +98,35 @@ class ChatAssistant
 
         $service = select(
             label: 'Choose the Service for the assistant',
-            options: ['openai' => 'OpenAI', 'claude' => 'Claude'],
+            options: array_keys(config('aiproviders')),
             default: 'openai' // Default service is openai
         );
 
-        $models = [];
-        $servicesConfig = config('aiproviders');
-        if (array_key_exists($service, $servicesConfig)) {
-            $models = $servicesConfig[$service]['models'];
-        }
+
+        $connector = new OllamaConnector();
+        $models = $connector->send(new OllamaListModelsRequest())->json();
+        $dto = $connector->send(new OllamaListModelsRequest())->dto();
+
+
+//        $connector = new OpenAIConnector();
+//        $models = $connector->send(new OpenAIListModelsRequest())->dto();
+//        dd($models);
+
+//        $servicesConfig = config('aiproviders');
+//        if (array_key_exists($service, $servicesConfig)) {
+//            $models = $servicesConfig[$service]['models'];
+//        }
+
+//        $filter = collect($models)->filter(fn ($model) => str_contains($model->name, 'phi'));
 
         $assistant = form()
             ->text(label: 'What is the name of the assistant?', default: ucfirst($folderName.' Project'), required: true, name: 'name')
             ->text(label: 'What is the description of the assistant? (optional)', name: 'description')
-            ->select(
+            ->search(
                 label: 'Choose the Model for the assistant',
-                options: array_combine($models, $models),
-                default: reset($models),
+                options: fn (string $value) => strlen($value) > 0
+                    ? $dto->filter(fn ($model) => str_contains($model->name, $value))->values()->toArray()
+                    : [],
                 name: 'model'
             )
             ->textarea(
@@ -164,6 +184,9 @@ class ChatAssistant
         return $thread;
     }
 
+    /**
+     * @throws Exception
+     */
     public function getAnswer($thread, $message): string
     {
         if ($message !== null) {

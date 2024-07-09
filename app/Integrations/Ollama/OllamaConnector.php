@@ -2,10 +2,11 @@
 
 namespace App\Integrations\Ollama;
 
+use Saloon\Http\Connector;
 use Saloon\Traits\Plugins\AcceptsJson;
 use Saloon\Traits\Plugins\AlwaysThrowOnErrors;
 
-class OllamaConnector
+class OllamaConnector extends Connector
 {
     use AcceptsJson, AlwaysThrowOnErrors;
 
@@ -17,3 +18,4 @@ class OllamaConnector
         return 'http://localhost:11434';
     }
 }
+
