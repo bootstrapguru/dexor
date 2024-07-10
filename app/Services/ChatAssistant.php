@@ -209,7 +209,6 @@ class ChatAssistant
         $response = spin(fn () => $connector->send($chatRequest)->json(), 'Getting response from ' . $thread->assistant->service);
 
         $choice = $response['choices'][0];
-
         return $this->handleTools($thread, $choice);
     }
 

@@ -2,10 +2,14 @@
 
 namespace App\Integrations\Ollama\Requests;
 
+use App\Data\MessageData;
 use App\Models\Thread;
+use Illuminate\Support\Collection;
+use JsonException;
 use Saloon\Contracts\Body\HasBody;
 use Saloon\Enums\Method;
 use Saloon\Http\Request;
+use Saloon\Http\Response;
 use Saloon\Traits\Body\HasJsonBody;
 
 class ChatRequest extends Request implements HasBody
@@ -47,7 +51,18 @@ class ChatRequest extends Request implements HasBody
         return [
             'model' => $assistant->model,
             'messages' => $messages,
+            'stream'  => false,
             'tools' => array_values($this->tools),
         ];
+    }
+
+
+    /**
+     * @throws JsonException
+     */
+    public function createDtoFromResponse(Response $response): MessageData
+    {
+        $data = $response->json();
+        return MessageData::from($data['message']);
     }
 }
