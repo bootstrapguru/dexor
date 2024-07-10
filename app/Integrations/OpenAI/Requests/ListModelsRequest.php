@@ -22,6 +22,7 @@ class ListModelsRequest extends Request
 
     public function createDtoFromResponse(Response $response): Collection
     {
-        return collect($response->json())->map(fn ($model) => new AIModelData($model));
+        $data = $response->json()['data'];
+        return collect($data)->map(fn($model) => AIModelData::from(['name' => $model['id']]));
     }
 }

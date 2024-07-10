@@ -102,22 +102,8 @@ class ChatAssistant
             default: 'openai' // Default service is openai
         );
 
-
-        $connector = new OllamaConnector();
-        $models = $connector->send(new OllamaListModelsRequest())->json();
-        $dto = $connector->send(new OllamaListModelsRequest())->dto();
-
-
-//        $connector = new OpenAIConnector();
-//        $models = $connector->send(new OpenAIListModelsRequest())->dto();
-//        dd($models);
-
-//        $servicesConfig = config('aiproviders');
-//        if (array_key_exists($service, $servicesConfig)) {
-//            $models = $servicesConfig[$service]['models'];
-//        }
-
-//        $filter = collect($models)->filter(fn ($model) => str_contains($model->name, 'phi'));
+        $connector = new OpenAIConnector();
+        $models = $connector->send(new OpenAIListModelsRequest())->dto();
 
         $assistant = form()
             ->text(label: 'What is the name of the assistant?', default: ucfirst($folderName.' Project'), required: true, name: 'name')
@@ -125,8 +111,8 @@ class ChatAssistant
             ->search(
                 label: 'Choose the Model for the assistant',
                 options: fn (string $value) => strlen($value) > 0
-                    ? $dto->filter(fn ($model) => str_contains($model->name, $value))->values()->toArray()
-                    : [],
+                    ? $models->filter(fn ($model) => str_contains($model->name, $value))->pluck('name')->toArray()
+                    : $models->take(5)->pluck('name')->toArray(),
                 name: 'model'
             )
             ->textarea(
