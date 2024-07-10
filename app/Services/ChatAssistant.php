@@ -3,15 +3,6 @@
 namespace App\Services;
 
 use App\Data\AIModelData;
-use App\Integrations\Claude\ClaudeAIConnector;
-use App\Integrations\Ollama\OllamaConnector;
-use App\Integrations\OpenAI\OpenAIConnector;
-use App\Integrations\Claude\Requests\ChatRequest as ClaudeChatRequest;
-use App\Integrations\Ollama\Requests\ChatRequest as OllamaChatRequest;
-use App\Integrations\OpenAI\Requests\ChatRequest as OpenAIChatRequest;
-use App\Integrations\Ollama\Requests\ListModelsRequest as OllamaListModelsRequest;
-use App\Integrations\OpenAI\Requests\ListModelsRequest as OpenAIListModelsRequest;
-use App\Integrations\Claude\Requests\ListModelsRequest as ClaudeListModelsRequest;
 use App\Models\Assistant;
 use App\Models\Project;
 use App\Tools\ExecuteCommand;
@@ -24,8 +15,8 @@ use Exception;
 use ReflectionException;
 use Saloon\Exceptions\Request\FatalRequestException;
 use Saloon\Exceptions\Request\RequestException;
+
 use function Laravel\Prompts\form;
-use function Laravel\Prompts\note;
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\spin;
 use function Termwind\render;
@@ -110,15 +101,14 @@ class ChatAssistant
         if ($listModelsRequestClass !== null) {
             $connector = new $connectorClass();
             $models = $connector->send(new $listModelsRequestClass())->dto();
-        }
-        else {
+        } else {
             $models = collect(config('aiproviders.'.$service.'.models'))->map(fn ($model) => AIModelData::from([
-                'name' => $model
+                'name' => $model,
             ]));
         }
 
         $assistant = form()
-            ->text(label: 'What is the name of the assistant?', default: ucfirst($folderName . ' Project'), required: true, name: 'name')
+            ->text(label: 'What is the name of the assistant?', default: ucfirst($folderName.' Project'), required: true, name: 'name')
             ->text(label: 'What is the description of the assistant? (optional)', name: 'description')
             ->search(
                 label: 'Choose the Model for the assistant',
@@ -206,9 +196,10 @@ class ChatAssistant
         $connector = new $connectorClass();
         $chatRequest = new $chatRequestClass($thread, $this->registered_tools);
 
-        $response = spin(fn () => $connector->send($chatRequest)->json(), 'Getting response from ' . $thread->assistant->service);
+        $response = spin(fn () => $connector->send($chatRequest)->json(), 'Getting response from '.$thread->assistant->service);
 
         $choice = $response['choices'][0];
+
         return $this->handleTools($thread, $choice);
     }
 
@@ -232,7 +223,7 @@ class ChatAssistant
                     ]);
 
                 } catch (Exception $e) {
-                    throw new Exception('Error calling tool: ' . $e->getMessage());
+                    throw new Exception('Error calling tool: '.$e->getMessage());
                 }
             }
 

@@ -8,6 +8,5 @@ class AIModelData extends Data
 {
     public function __construct(
         public string $name
-    ) {
-    }
+    ) {}
 }

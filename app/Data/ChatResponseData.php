@@ -11,6 +11,5 @@ class ChatResponseData extends Data
         public ?string $content,
         public ?string $tool_call_id,
         public ?string $name
-    ) {
-    }
+    ) {}
 }

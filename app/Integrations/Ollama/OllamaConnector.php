@@ -18,4 +18,3 @@ class OllamaConnector extends Connector
         return 'http://localhost:11434/api';
     }
 }
-

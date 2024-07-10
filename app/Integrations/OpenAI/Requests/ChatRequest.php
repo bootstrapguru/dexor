@@ -2,10 +2,8 @@
 
 namespace App\Integrations\OpenAI\Requests;
 
-use App\Data\AIModelData;
 use App\Data\MessageData;
 use App\Models\Thread;
-use Illuminate\Support\Collection;
 use Saloon\Contracts\Body\HasBody;
 use Saloon\Enums\Method;
 use Saloon\Http\Request;
@@ -62,7 +60,6 @@ class ChatRequest extends Request implements HasBody
         $message = MessageData::from($data['choices'][0]['message']);
 
         dd($message);
-
 
     }
 }
