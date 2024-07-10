@@ -55,6 +55,8 @@ return [
 
     'providers' => [
         App\Providers\AppServiceProvider::class,
+        Spatie\LaravelData\LaravelDataServiceProvider::class,
+        Illuminate\Validation\ValidationServiceProvider::class,
     ],
 
 ];
