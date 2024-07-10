@@ -45,7 +45,6 @@ class ChatAssistant
             WriteToFile::class,
             UpdateFile::class,
             ListFiles::class,
-            HtmlToTextTool::class,
             ReadFile::class,
         ]);
     }
