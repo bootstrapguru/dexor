@@ -56,7 +56,7 @@ class ChatRequest extends Request implements HasBody
             'messages' => $messages,
             'system' => $this->thread->assistant->prompt,
             'tools' => array_values($tools),
-            'max_tokens' => 100,
+            'max_tokens' => 500,
         ];
     }
 }

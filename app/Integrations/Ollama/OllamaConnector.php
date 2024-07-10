@@ -15,7 +15,7 @@ class OllamaConnector extends Connector
      */
     public function resolveBaseUrl(): string
     {
-        return 'http://localhost:11434';
+        return 'http://localhost:11434/api';
     }
 }
 

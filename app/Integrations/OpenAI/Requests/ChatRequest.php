@@ -2,10 +2,14 @@
 
 namespace App\Integrations\OpenAI\Requests;
 
+use App\Data\AIModelData;
+use App\Data\MessageData;
 use App\Models\Thread;
+use Illuminate\Support\Collection;
 use Saloon\Contracts\Body\HasBody;
 use Saloon\Enums\Method;
 use Saloon\Http\Request;
+use Saloon\Http\Response;
 use Saloon\Traits\Body\HasJsonBody;
 
 class ChatRequest extends Request implements HasBody
@@ -49,5 +53,16 @@ class ChatRequest extends Request implements HasBody
             'messages' => $messages,
             'tools' => array_values($this->tools),
         ];
+    }
+
+    public function createDtoFromResponse(Response $response): MessageData
+    {
+        $data = $response->json();
+
+        $message = MessageData::from($data['choices'][0]['message']);
+
+        dd($message);
+
+
     }
 }

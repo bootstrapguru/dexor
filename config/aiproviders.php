@@ -22,7 +22,6 @@ return [
             'claude-3-sonnet-20240229',
         ],
         'connector' => \App\Integrations\Claude\ClaudeAIConnector::class,
-        'listModelsRequest' => \App\Integrations\Claude\Requests\ListModelsRequest::class,
         'chatRequest' => \App\Integrations\Claude\Requests\ChatRequest::class,
     ],
 

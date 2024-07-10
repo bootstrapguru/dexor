@@ -2,14 +2,16 @@
 
 namespace App\Services;
 
+use App\Data\AIModelData;
 use App\Integrations\Claude\ClaudeAIConnector;
-use App\Integrations\Claude\Requests\ChatRequest as ClaudeChatRequest;
 use App\Integrations\Ollama\OllamaConnector;
-use App\Integrations\Ollama\Requests\ChatRequest as OllamaChatRequest;
-use App\Integrations\Ollama\Requests\ListModelsRequest as OllamaListModelsRequest;
 use App\Integrations\OpenAI\OpenAIConnector;
+use App\Integrations\Claude\Requests\ChatRequest as ClaudeChatRequest;
+use App\Integrations\Ollama\Requests\ChatRequest as OllamaChatRequest;
 use App\Integrations\OpenAI\Requests\ChatRequest as OpenAIChatRequest;
+use App\Integrations\Ollama\Requests\ListModelsRequest as OllamaListModelsRequest;
 use App\Integrations\OpenAI\Requests\ListModelsRequest as OpenAIListModelsRequest;
+use App\Integrations\Claude\Requests\ListModelsRequest as ClaudeListModelsRequest;
 use App\Models\Assistant;
 use App\Models\Project;
 use App\Tools\ExecuteCommand;
@@ -31,24 +33,6 @@ use function Termwind\render;
 class ChatAssistant
 {
     use HasTools;
-
-    protected $serviceMapping = [
-        'openai' => [
-            'connector' => OpenAIConnector::class,
-            'listModelsRequest' => OpenAIListModelsRequest::class,
-            'chatRequest' => OpenAIChatRequest::class,
-        ],
-        'ollama' => [
-            'connector' => OllamaConnector::class,
-            'listModelsRequest' => OllamaListModelsRequest::class,
-            'chatRequest' => OllamaChatRequest::class,
-        ],
-        'claude' => [
-            'connector' => ClaudeAIConnector::class,
-            'listModelsRequest' => ClaudeListModelsRequest::class,
-            'chatRequest' => ClaudeChatRequest::class,
-        ]
-    ];
 
     /**
      * @throws ReflectionException
@@ -120,11 +104,18 @@ class ChatAssistant
             default: 'openai'
         );
 
-        $connectorClass = $this->serviceMapping[$service]['connector'];
-        $listModelsRequestClass = $this->serviceMapping[$service]['listModelsRequest'];
+        $connectorClass = config('aiproviders.'.$service.'.connector');
+        $listModelsRequestClass = config('aiproviders.'.$service.'.listModelsRequest');
 
-        $connector = new $connectorClass();
-        $models = $connector->send(new $listModelsRequestClass())->dto();
+        if ($listModelsRequestClass !== null) {
+            $connector = new $connectorClass();
+            $models = $connector->send(new $listModelsRequestClass())->dto();
+        }
+        else {
+            $models = collect(config('aiproviders.'.$service.'.models'))->map(fn ($model) => AIModelData::from([
+                'name' => $model
+            ]));
+        }
 
         $assistant = form()
             ->text(label: 'What is the name of the assistant?', default: ucfirst($folderName . ' Project'), required: true, name: 'name')
@@ -186,7 +177,9 @@ class ChatAssistant
             'Creating New Thread...'
         );
 
-        note('🤖: How can I help you?');
+        render(view('assistant', [
+            'answer' => 'How can I help you?',
+        ]));
 
         return $thread;
     }
@@ -206,8 +199,9 @@ class ChatAssistant
         $thread->load('messages');
 
         $service = $thread->assistant->service;
-        $connectorClass = $this->serviceMapping[$service]['connector'];
-        $chatRequestClass = $this->serviceMapping[$service]['chatRequest'];
+
+        $connectorClass = config('aiproviders.'.$service.'.connector');
+        $chatRequestClass = config('aiproviders.'.$service.'.chatRequest');
 
         $connector = new $connectorClass();
         $chatRequest = new $chatRequestClass($thread, $this->registered_tools);
