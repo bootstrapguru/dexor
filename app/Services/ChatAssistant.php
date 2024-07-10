@@ -32,6 +32,24 @@ class ChatAssistant
 {
     use HasTools;
 
+    protected $serviceMapping = [
+        'openai' => [
+            'connector' => OpenAIConnector::class,
+            'listModelsRequest' => OpenAIListModelsRequest::class,
+            'chatRequest' => OpenAIChatRequest::class,
+        ],
+        'ollama' => [
+            'connector' => OllamaConnector::class,
+            'listModelsRequest' => OllamaListModelsRequest::class,
+            'chatRequest' => OllamaChatRequest::class,
+        ],
+        'claude' => [
+            'connector' => ClaudeAIConnector::class,
+            'listModelsRequest' => ClaudeListModelsRequest::class,
+            'chatRequest' => ClaudeChatRequest::class,
+        ]
+    ];
+
     /**
      * @throws ReflectionException
      */
@@ -99,14 +117,17 @@ class ChatAssistant
         $service = select(
             label: 'Choose the Service for the assistant',
             options: array_keys(config('aiproviders')),
-            default: 'openai' // Default service is openai
+            default: 'openai'
         );
 
-        $connector = new OpenAIConnector();
-        $models = $connector->send(new OpenAIListModelsRequest())->dto();
+        $connectorClass = $this->serviceMapping[$service]['connector'];
+        $listModelsRequestClass = $this->serviceMapping[$service]['listModelsRequest'];
+
+        $connector = new $connectorClass();
+        $models = $connector->send(new $listModelsRequestClass())->dto();
 
         $assistant = form()
-            ->text(label: 'What is the name of the assistant?', default: ucfirst($folderName.' Project'), required: true, name: 'name')
+            ->text(label: 'What is the name of the assistant?', default: ucfirst($folderName . ' Project'), required: true, name: 'name')
             ->text(label: 'What is the description of the assistant? (optional)', name: 'description')
             ->search(
                 label: 'Choose the Model for the assistant',
@@ -184,18 +205,14 @@ class ChatAssistant
 
         $thread->load('messages');
 
-        if ($thread->assistant->service === 'claude') {
-            $connector = new ClaudeAIConnector();
-            $chatRequest = new ClaudeChatRequest($thread, $this->registered_tools);
-        } elseif ($thread->assistant->service === 'ollama') {
-            $connector = new OllamaConnector();
-            $chatRequest = new OllamaChatRequest($thread, $this->registered_tools);
-        } else {
-            $connector = new OpenAIConnector();
-            $chatRequest = new OpenAIChatRequest($thread, $this->registered_tools);
-        }
+        $service = $thread->assistant->service;
+        $connectorClass = $this->serviceMapping[$service]['connector'];
+        $chatRequestClass = $this->serviceMapping[$service]['chatRequest'];
 
-        $response = spin(fn () => $connector->send($chatRequest)->json(), 'Getting response from '.$thread->assistant->service);
+        $connector = new $connectorClass();
+        $chatRequest = new $chatRequestClass($thread, $this->registered_tools);
+
+        $response = spin(fn () => $connector->send($chatRequest)->json(), 'Getting response from ' . $thread->assistant->service);
 
         $choice = $response['choices'][0];
 
@@ -222,7 +239,7 @@ class ChatAssistant
                     ]);
 
                 } catch (Exception $e) {
-                    throw new Exception('Error calling tool: '.$e->getMessage());
+                    throw new Exception('Error calling tool: ' . $e->getMessage());
                 }
             }
 
