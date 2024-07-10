@@ -15,7 +15,6 @@ use App\Integrations\Claude\Requests\ListModelsRequest as ClaudeListModelsReques
 use App\Models\Assistant;
 use App\Models\Project;
 use App\Tools\ExecuteCommand;
-use App\Tools\HtmlToTextTool;
 use App\Tools\ListFiles;
 use App\Tools\ReadFile;
 use App\Tools\UpdateFile;
