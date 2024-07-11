@@ -15,45 +15,43 @@ class ChatRequest extends Request implements HasBody
 {
     use HasJsonBody;
 
-    /**
-     * The HTTP method
-     */
     protected Method $method = Method::POST;
 
     public function __construct(
-        public Thread $thread,
-        public array $tools
+        public readonly Thread $thread,
+        public readonly array $tools
     ) {}
 
-    /**
-     * The endpoint
-     */
     public function resolveEndpoint(): string
     {
         return '/chat';
     }
 
-    /**
-     * Data to be sent in the body of the request
-     */
     public function defaultBody(): array
     {
         $assistant = $this->thread->project->assistant;
 
-        $messages = [[
-                'role' => 'system',
-                'content' =>'[INST]'.$assistant->prompt.'[/INST] [AVAILABLE_TOOLS]'.json_encode(array_values($this->tools)).'[/AVAILABLE_TOOLS]',
-            ],
-            ...$this->thread->messages,
-        ];
-
         return [
             'model' => $assistant->model,
-            'messages' => $messages,
+            'messages' => $this->formatMessages($assistant),
             'stream' => false,
             'raw' => true,
             'tools' => array_values($this->tools),
         ];
+    }
+
+    private function formatMessages($assistant): array
+    {
+        $systemMessage = [
+            'role' => 'system',
+            'content' => sprintf(
+                '[INST]%s[/INST] [AVAILABLE_TOOLS]%s[/AVAILABLE_TOOLS]',
+                $assistant->prompt,
+                json_encode(array_values($this->tools))
+            ),
+        ];
+
+        return [$systemMessage, ...$this->thread->messages->toArray()];
     }
 
     /**
@@ -62,6 +60,6 @@ class ChatRequest extends Request implements HasBody
     public function createDtoFromResponse(Response $response): MessageData
     {
         $data = $response->json();
-        return MessageData::from($data['message']);
+        return MessageData::from($data['message'] ?? []);
     }
 }

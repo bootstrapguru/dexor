@@ -3,8 +3,6 @@
 namespace App\Integrations\OpenAI\Requests;
 
 use App\Data\MessageData;
-use App\Data\ToolCallData;
-use App\Data\ToolFunctionData;
 use App\Models\Thread;
 use Saloon\Contracts\Body\HasBody;
 use Saloon\Enums\Method;
@@ -16,42 +14,37 @@ class ChatRequest extends Request implements HasBody
 {
     use HasJsonBody;
 
-    /**
-     * The HTTP method
-     */
     protected Method $method = Method::POST;
 
     public function __construct(
-        public Thread $thread,
-        public array $tools
+        public readonly Thread $thread,
+        public readonly array $tools
     ) {}
 
-    /**
-     * The endpoint
-     */
     public function resolveEndpoint(): string
     {
         return '/chat/completions';
     }
 
-    /**
-     * Data to be sent in the body of the request
-     */
     public function defaultBody(): array
     {
         $assistant = $this->thread->project->assistant;
 
-        $messages = [[
-            'role' => 'system',
-            'content' => $assistant->prompt,
-        ],
-            ...$this->thread->messages,
-        ];
-
         return [
             'model' => $assistant->model,
-            'messages' => $messages,
+            'messages' => $this->formatMessages($assistant),
             'tools' => array_values($this->tools),
+        ];
+    }
+
+    private function formatMessages($assistant): array
+    {
+        return [
+            [
+                'role' => 'system',
+                'content' => $assistant->prompt,
+            ],
+            ...$this->thread->messages->toArray(),
         ];
     }
 
@@ -59,6 +52,6 @@ class ChatRequest extends Request implements HasBody
     {
         $data = $response->json();
         $choice = $data['choices'][0] ?? [];
-        return MessageData::from($choice['message']);
+        return MessageData::from($choice['message'] ?? []);
     }
 }

@@ -6,7 +6,7 @@ use App\Data\MessageData;
 use App\Data\ToolCallData;
 use App\Data\ToolFunctionData;
 use App\Models\Thread;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Collection;
 use Saloon\Contracts\Body\HasBody;
 use Saloon\Enums\Method;
 use Saloon\Http\Request;
@@ -23,8 +23,8 @@ class ChatRequest extends Request implements HasBody
     protected Method $method = Method::POST;
 
     public function __construct(
-        public Thread $thread,
-        public array $tools
+        public readonly Thread $thread,
+        public readonly array $tools
     ) {}
 
     /**
@@ -40,64 +40,76 @@ class ChatRequest extends Request implements HasBody
      */
     public function defaultBody(): array
     {
-        $tools = collect($this->tools)->map(function ($tool) {
+        return [
+            'model' => $this->thread->assistant->model,
+            'messages' => $this->formatMessages(),
+            'system' => $this->thread->assistant->prompt,
+            'tools' => $this->formatTools(),
+            'max_tokens' => 2000,
+        ];
+    }
+
+    private function formatTools(): array
+    {
+        return array_values(array_map(function ($tool) {
             $claudeTool = $tool['function'];
             $claudeTool['input_schema'] = $claudeTool['parameters'];
             unset($claudeTool['parameters']);
-
             return $claudeTool;
-        })->toArray();
+        }, $this->tools));
+    }
 
-        $messages = $this->thread->messages->map(function ($message) {
-            $modifiedMessage = [
-                'role' => $message->role,
-                'content' => $message->content,
-            ];
-
-            if ($message->role === 'assistant') {
-                $modifiedMessage = [
+    private function formatMessages(): array
+    {
+        return $this->thread->messages->map(function ($message) {
+            return match ($message->role) {
+                'assistant' => $this->formatAssistantMessage($message),
+                'tool' => $this->formatToolMessage($message),
+                default => [
                     'role' => $message->role,
-                    'content' => [[
-                        'type' => 'text',
-                        'text' => $message->content
-                    ]]
+                    'content' => $message->content,
+                ],
+            };
+        })->toArray();
+    }
+
+    private function formatAssistantMessage($message): array
+    {
+        $content = [['type' => 'text', 'text' => $message->content]];
+
+        if ($message->tool_calls !== null) {
+            $content = array_merge($content, array_map(function ($toolCall) {
+                return [
+                    'type' => $toolCall['type'],
+                    'id' => $toolCall['id'],
+                    'name' => $toolCall['function']['name'],
+                    'input' => json_decode($toolCall['function']['arguments'], true),
                 ];
-
-                if ($message->tool_calls !== null) {
-                    foreach ($message->tool_calls as $toolCall) {
-                        $modifiedMessage['content'][] = [
-                            'type' => $toolCall['type'],
-                            'id' => $toolCall['id'],
-                            'name' => $toolCall['function']['name'],
-                            'input' => json_decode($toolCall['function']['arguments'])
-                        ];
-                    }
-                }
-            }
-
-            if ($message->role === 'tool') {
-                $modifiedMessage =  [
-                    'role' => 'user',
-                    'content' => [[
-                        'type' => 'tool_result',
-                        "tool_use_id"=> $message->tool_call_id,
-                    ]]
-                ];
-
-                if ($message->content) {
-                    $modifiedMessage['content'][0]['content'] = $message->content;
-                }
-            }
-
-            return $modifiedMessage;
-        });
+            }, $message->tool_calls));
+        }
 
         return [
-            'model' => $this->thread->assistant->model,
-            'messages' => $messages,
-            'system' => $this->thread->assistant->prompt,
-            'tools' => array_values($tools),
-            'max_tokens' => 2000,
+            'role' => 'assistant',
+            'content' => $content,
+        ];
+    }
+
+    private function formatToolMessage($message): array
+    {
+        $content = [
+            [
+                'type' => 'tool_result',
+                'tool_use_id' => $message->tool_call_id,
+            ]
+        ];
+
+        if ($message->content) {
+            $content[0]['content'] = $message->content;
+        }
+
+        return [
+            'role' => 'user',
+            'content' => $content,
         ];
     }
 
@@ -105,15 +117,15 @@ class ChatRequest extends Request implements HasBody
     {
         $data = $response->json();
         $message = null;
-        $tools = collect([]);
+        $tools = new Collection();
+
         foreach ($data['content'] as $choice) {
             if ($choice['type'] === 'text') {
                 $message = MessageData::from([
                     'role' => 'assistant',
                     'content' => $choice['text']
                 ]);
-            }
-            else {
+            } else {
                 $tools->push(ToolCallData::from([
                     'id' => $choice['id'],
                     'type' => $choice['type'],
