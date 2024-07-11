@@ -43,14 +43,12 @@ class ChatRequest extends Request implements HasBody
         $tools = collect($this->tools)->map(function ($tool) {
             $claudeTool = $tool['function'];
             $claudeTool['input_schema'] = $claudeTool['parameters'];
-            // unset parameters
             unset($claudeTool['parameters']);
 
             return $claudeTool;
         })->toArray();
 
         $messages = $this->thread->messages->map(function ($message) {
-
             $modifiedMessage = [
                 'role' => $message->role,
                 'content' => $message->content,
@@ -66,10 +64,7 @@ class ChatRequest extends Request implements HasBody
                 ];
 
                 if ($message->tool_calls !== null) {
-                    var_dump($message->tool_calls);
-
                     foreach ($message->tool_calls as $toolCall) {
-
                         $modifiedMessage['content'][] = [
                             'type' => $toolCall['type'],
                             'id' => $toolCall['id'],
@@ -81,7 +76,6 @@ class ChatRequest extends Request implements HasBody
             }
 
             if ($message->role === 'tool') {
-                // for claude, the tool response has different structure
                 $modifiedMessage =  [
                     'role' => 'user',
                     'content' => [[
@@ -98,37 +92,13 @@ class ChatRequest extends Request implements HasBody
             return $modifiedMessage;
         });
 
-        var_dump($messages);
-
         return [
             'model' => $this->thread->assistant->model,
             'messages' => $messages,
             'system' => $this->thread->assistant->prompt,
             'tools' => array_values($tools),
-            'max_tokens' => 500,
+            'max_tokens' => 2000,
         ];
-    }
-
-    private function getToolResults($messages) {
-//        {
-//            "type": "tool_result",
-//            "tool_use_id": "toolu_01A09q90qw90lq917835lq9",
-//            "content": "15 degrees"
-//        }
-
-        $toolResults = [];
-
-        foreach ($messages as $message) {
-            if ($message)
-            $toolResults[] = [
-                'type' => 'tool_result',
-                'too_use_id' => $message->tool_call_id,
-            ];
-        }
-
-
-
-
     }
 
     public function createDtoFromResponse(Response $response): MessageData
