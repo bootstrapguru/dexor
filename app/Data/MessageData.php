@@ -2,6 +2,7 @@
 
 namespace App\Data;
 
+use Illuminate\Support\Collection;
 use Spatie\LaravelData\Data;
 
 class MessageData extends Data
@@ -10,6 +11,9 @@ class MessageData extends Data
         public string $role,
         public ?string $content,
         public ?string $tool_call_id,
-        public ?string $name
+        public ?string $tool_name,
+        /** @var Collection<int, ToolCallData> */
+        public ?Collection $tool_calls,
+        public ?string $finish_reason,
     ) {}
 }

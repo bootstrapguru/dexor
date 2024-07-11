@@ -53,13 +53,17 @@ class ChatRequest extends Request implements HasBody
         ];
     }
 
-    public function createDtoFromResponse(Response $response): MessageData
+    public function createDtoFromResponse(Response $response): array
     {
         $data = $response->json();
 
-        $message = MessageData::from($data['choices'][0]['message']);
+        $choices = $data['choices'] ?? [];
+        $result = [];
 
-        dd($message);
+        foreach ($choices as $choice) {
+            $result[] = MessageData::from($choice['message']);
+        }
 
+        return $result;
     }
 }
