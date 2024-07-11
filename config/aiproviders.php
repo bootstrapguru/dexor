@@ -3,12 +3,6 @@
 return [
     'openai' => [
         'api_key' => env('OPENAI_API_KEY'),
-        'models' => [
-            'gpt-4o',
-            'gpt-3.5-turbo',
-            'gpt-4-turbo',
-            'gpt-4-turbo-preview',
-        ],
         'connector' => \App\Integrations\OpenAI\OpenAIConnector::class,
         'listModelsRequest' => \App\Integrations\OpenAI\Requests\ListModelsRequest::class,
         'chatRequest' => \App\Integrations\OpenAI\Requests\ChatRequest::class,
