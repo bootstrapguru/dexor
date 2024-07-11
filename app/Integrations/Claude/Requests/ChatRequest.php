@@ -12,6 +12,7 @@ use Saloon\Enums\Method;
 use Saloon\Http\Request;
 use Saloon\Http\Response;
 use Saloon\Traits\Body\HasJsonBody;
+use Saloon\Traits\Plugins\HasTimeout;
 
 class ChatRequest extends Request implements HasBody
 {
@@ -45,7 +46,7 @@ class ChatRequest extends Request implements HasBody
             'messages' => $this->formatMessages(),
             'system' => $this->thread->assistant->prompt,
             'tools' => $this->formatTools(),
-            'max_tokens' => 2000,
+            'max_tokens' => 4096,
         ];
     }
 
