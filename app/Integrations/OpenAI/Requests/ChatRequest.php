@@ -3,6 +3,8 @@
 namespace App\Integrations\OpenAI\Requests;
 
 use App\Data\MessageData;
+use App\Data\ToolCallData;
+use App\Data\ToolFunctionData;
 use App\Models\Thread;
 use Saloon\Contracts\Body\HasBody;
 use Saloon\Enums\Method;
@@ -61,7 +63,9 @@ class ChatRequest extends Request implements HasBody
         $result = [];
 
         foreach ($choices as $choice) {
-            $result[] = MessageData::from($choice['message']);
+            $messageData = MessageData::from($choice['message']);
+            $messageData->finish_reason = $choice['finish_reason'];
+            $result[] = $messageData;
         }
 
         return $result;

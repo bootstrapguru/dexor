@@ -196,29 +196,30 @@ class ChatAssistant
         $connector = new $connectorClass();
         $chatRequest = new $chatRequestClass($thread, $this->registered_tools);
 
-        $response = spin(fn () => $connector->send($chatRequest)->dto(), 'Getting response from '.$thread->assistant->service);
+        $messages = spin(fn () => $connector->send($chatRequest)->dto(), 'Getting response from '.$thread->assistant->service);
 
-        $choice = $response['choices'][0];
-
-        return $this->handleTools($thread, $choice);
+        return $this->handleTools($thread, $messages[0]);
     }
 
-    public function handleTools($thread, $choice): string
+    /**
+     * @throws Exception
+     */
+    public function handleTools($thread, $message): string
     {
-        $answer = $choice['message']['content'];
+        $answer = $message->content;
 
-        $thread->messages()->create($choice['message']);
+        $thread->messages()->create($message->toArray());
 
-        if ($choice['finish_reason'] === 'tool_calls') {
+        if ($message->finish_reason === 'tool_calls') {
 
-            foreach ($choice['message']['tool_calls'] as $toolCall) {
+            foreach ($message->tool_calls as $toolCall) {
                 try {
-                    $toolResponse = $this->call($toolCall['function']['name'], json_decode($toolCall['function']['arguments'], true));
+                    $toolResponse = $this->call($toolCall->function->name, json_decode($toolCall->function->arguments, true));
 
                     $thread->messages()->create([
                         'role' => 'tool',
-                        'tool_call_id' => $toolCall['id'],
-                        'name' => $toolCall['function']['name'],
+                        'tool_call_id' => $toolCall->id,
+                        'name' => $toolCall->function->name,
                         'content' => $toolResponse,
                     ]);
 
