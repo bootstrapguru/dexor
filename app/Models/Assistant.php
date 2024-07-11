@@ -15,7 +15,7 @@ class Assistant extends Model
         'description',
         'prompt',
         'tools',
-        'service', // New field
+        'service',
     ];
 
     protected $casts = [
