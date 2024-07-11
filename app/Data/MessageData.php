@@ -13,7 +13,6 @@ class MessageData extends Data
         public ?string $tool_call_id,
         public ?string $tool_name,
         /** @var Collection<int, ToolCallData> */
-        public ?Collection $tool_calls,
-        public ?string $finish_reason,
+        public ?Collection $tool_calls
     ) {}
 }

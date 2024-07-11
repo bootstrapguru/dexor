@@ -63,9 +63,7 @@ class ChatRequest extends Request implements HasBody
         $result = [];
 
         foreach ($choices as $choice) {
-            $messageData = MessageData::from($choice['message']);
-            $messageData->finish_reason = $choice['finish_reason'];
-            $result[] = $messageData;
+            $result[] = MessageData::from($choice['message']);
         }
 
         return $result;

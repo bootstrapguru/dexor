@@ -42,8 +42,28 @@ class ChatRequest extends Request implements HasBody
 
         $messages = [[
             'role' => 'system',
-            'content' => $assistant->prompt,
-        ],
+            'content' => $assistant->prompt.' Use the tools provided in the json format. '.json_encode(array_values($this->tools)).' Always respond in the following format with replacing the template values inside {} as it needs to and if there are not tools to use, pass null {
+                  "choices": [
+                    {
+                      "index": 0,
+                      "message": {
+                        "role": "assistant",
+                        "content": {content},
+                        "tool_calls": [
+                          {
+                            "id": "{random_string}",
+                            "type": "function",
+                            "function": {
+                              "name": "{tool_name}",
+                              "arguments": "{arguments_json}"
+                            }
+                          }
+                        ]
+                      }"
+                    }
+                  ]
+                }',
+            ],
             ...$this->thread->messages,
         ];
 
@@ -51,6 +71,7 @@ class ChatRequest extends Request implements HasBody
             'model' => $assistant->model,
             'messages' => $messages,
             'stream' => false,
+            'format' => 'json',
             'tools' => array_values($this->tools),
         ];
     }
@@ -61,7 +82,6 @@ class ChatRequest extends Request implements HasBody
     public function createDtoFromResponse(Response $response): MessageData
     {
         $data = $response->json();
-
         return MessageData::from($data['message']);
     }
 }
