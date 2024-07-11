@@ -196,7 +196,7 @@ class ChatAssistant
         $connector = new $connectorClass();
         $chatRequest = new $chatRequestClass($thread, $this->registered_tools);
 
-        $message = spin(fn () => $connector->send($chatRequest)->dto(), 'Getting response from '.$thread->assistant->service);
+        $message = spin(fn () => $connector->send($chatRequest)->dto(), 'Getting response from '.$thread->assistant->service.': '.$thread->assistant->model);
 
         return $this->handleTools($thread, $message);
     }
@@ -209,7 +209,7 @@ class ChatAssistant
         $answer = $message->content;
 
         $thread->messages()->create($message->toArray());
-        if (isset($message->tool_calls)) {
+        if ($message->tool_calls->count() > 0) {
             foreach ($message->tool_calls as $toolCall) {
                 try {
                     $toolResponse = $this->call($toolCall->function->name, json_decode($toolCall->function->arguments, true));
@@ -225,7 +225,6 @@ class ChatAssistant
                     throw new Exception('Error calling tool: '.$e->getMessage());
                 }
             }
-
             return $this->getAnswer($thread, null);
         }
 
