@@ -12,9 +12,9 @@ use function Termwind\ask;
 
 class DroidCommand extends Command
 {
-    public $signature = 'droid';
+    public $signature = 'droid {--new : Create a new assistant}';
 
-    public $description = 'Allows you to create/update a feature and run commands';
+    public $description = 'Allows you to create/update a feature, run commands, and create a new assistant';
 
     public function __construct(
         private readonly ChatAssistant  $chatAssistant,
@@ -31,6 +31,12 @@ class DroidCommand extends Command
         $onBoardingSteps = new OnBoardingSteps();
         if (! $onBoardingSteps->isCompleted($this)) {
             return self::FAILURE;
+        }
+
+        if ($this->option('new')) {
+            $this->chatAssistant->createNewAssistant();
+            $this->info('New assistant created successfully.');
+            return self::SUCCESS;
         }
 
         $thread = $this->chatAssistant->createThread();
