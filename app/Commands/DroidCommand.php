@@ -35,8 +35,6 @@ class DroidCommand extends Command
 
         if ($this->option('new')) {
             $this->chatAssistant->createNewAssistant();
-            $this->info('New assistant created successfully.');
-            return self::SUCCESS;
         }
 
         $thread = $this->chatAssistant->createThread();
