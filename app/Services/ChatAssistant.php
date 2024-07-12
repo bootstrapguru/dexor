@@ -11,6 +11,7 @@ use App\Tools\ReadFile;
 use App\Tools\UpdateFile;
 use App\Tools\WriteToFile;
 use App\Traits\HasTools;
+use App\Utils\OnBoardingSteps;
 use Exception;
 use Illuminate\Support\Collection;
 use ReflectionException;
@@ -27,12 +28,14 @@ class ChatAssistant
     use HasTools;
 
     private const DEFAULT_SERVICE = 'openai';
+    private OnBoardingSteps $onBoardingSteps;
 
     /**
      * @throws ReflectionException
      */
-    public function __construct()
+    public function __construct(OnBoardingSteps $onBoardingSteps)
     {
+        $this->onBoardingSteps = $onBoardingSteps;
         $this->register([
             ExecuteCommand::class,
             WriteToFile::class,
@@ -82,6 +85,7 @@ class ChatAssistant
         $folderName = basename($path);
 
         $service = $this->selectService();
+        $this->ensureAPIKey($service);
         $models = $this->getModels($service);
 
         $assistant = form()
@@ -278,6 +282,14 @@ class ChatAssistant
             ]);
         } catch (Exception $e) {
             throw new Exception("Error calling tool: {$e->getMessage()}");
+        }
+    }
+
+    private function ensureAPIKey(string $service): void
+    {
+        $apiKeyConfigName = strtoupper($service).'_API_KEY';
+        if (!config("aiproviders.{$service}.api_key")) {
+            $this->onBoardingSteps->requestAPIKey($service);
         }
     }
 }
