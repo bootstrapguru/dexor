@@ -6,7 +6,7 @@ use Dotenv\Dotenv;
 use Exception;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\Storage; // Import Artisan facade to run commands
+use Illuminate\Support\Facades\Storage;
 
 use function Laravel\Prompts\password;
 
@@ -21,7 +21,6 @@ class OnBoardingSteps
     {
         return $this->configurationFileExists()
             && $this->viewsFolderExists()
-            && $this->APIKeysExist()
             && $this->setupDatabase($droidCommand);
     }
 
@@ -56,26 +55,18 @@ class OnBoardingSteps
         return true;
     }
 
-    /**
-     * @throws Exception
-     */
-    private function APIKeysExist(): bool
+    public function requestAPIKey(string $service): string
     {
-        $services = ['openai', 'claude']; // List all supported services here
-
-        foreach ($services as $service) {
-            $apiKeyConfigName = strtoupper($service).'_API_KEY';
-            if (! config("aiproviders.{$service}.api_key")) {
-                $apiKey = password(
-                    label: "🤖: Enter your {$service} API key to continue",
-                    placeholder: 'sk-xxxxxx-xxxxxx-xxxxxx-xxxxxx',
-                    hint: "You can find your API key in your {$service} dashboard"
-                );
-                $this->setConfigValue($apiKeyConfigName, $apiKey);
-            }
-        }
-
-        return true;
+        $apiKey = password(
+            label: "🤖: Enter your {$service} API key to continue",
+            placeholder: 'sk-xxxxxx-xxxxxx-xxxxxx-xxxxxx',
+            hint: "You can find your API key in your {$service} dashboard"
+        );
+        
+        $apiKeyConfigName = strtoupper($service).'_API_KEY';
+        $this->setConfigValue($apiKeyConfigName, $apiKey);
+        
+        return $apiKey;
     }
 
     protected function setupDatabase($droidCommand): bool
