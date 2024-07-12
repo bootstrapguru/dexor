@@ -75,8 +75,9 @@ trait HasTools
 
         $params = [];
         foreach ($handle_method->getParameters() as $parameter) {
+            $parameter_description = $this->getParameterDescription($parameter);
             if (! array_key_exists($parameter->name, $arguments) && ! $parameter->isOptional() && ! $parameter->isDefaultValueAvailable()) {
-                throw new RuntimeException(sprintf('Parameter %s is required', $parameter->name));
+                return sprintf('Parameter %s(%s) is required for the tool %s', $parameter->name, $parameter_description, $tool_name);
             }
 
             // check if parameter type is an Enum and add fetch a valid value
@@ -153,5 +154,14 @@ trait HasTools
 
             default => 'string',
         };
+    }
+
+    private function getParameterDescription(ReflectionParameter $parameter): string
+    {
+        $descriptions = $parameter->getAttributes(Description::class);
+        if (!empty($descriptions)) {
+            return implode("\n", array_map(static fn ($pd) => $pd->newInstance()->value, $descriptions));
+        }
+        return $this->getToolParameterType($parameter);
     }
 }

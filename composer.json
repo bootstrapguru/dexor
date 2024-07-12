@@ -23,7 +23,8 @@
         "illuminate/view": "^11.5",
         "laravel-zero/phar-updater": "^1.4",
         "openai-php/client": "^0.10.1",
-        "saloonphp/saloon": "^3.9"
+        "saloonphp/saloon": "^3.9",
+        "spatie/laravel-data": "^4.7"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

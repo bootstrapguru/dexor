@@ -14,7 +14,7 @@ final class UpdateFile
         #[Description('File path to write content to')]
         string $file_path,
 
-        #[Description('Updated Content to overwrite the file')]
+        #[Description('Updated Content of the file to overwrite the existing one.')]
         string $content,
     ): string {
 
