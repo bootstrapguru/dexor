@@ -18,10 +18,14 @@ Ensuring your code functions as expected is crucial. I generate comprehensive te
 
 Need new files or components? I create them adhering to your project's existing patterns and conventions, ensuring consistency across your codebase.
 
+## AI Service Integration
+
+Droid now supports integration with multiple AI services, allowing you to choose the service and model that best fits your needs. This enhances flexibility and allows you to leverage different AI capabilities based on your project requirements.
+
 ## Latest Features (Updated on 2024-07-07)
 
-- Ability to create a new assistant for each project.
-- Moved away from Chat Assistants API to Chat Completions API.
+- Ability to create a new assistant for each project using the `--new` parameter.
+- Transitioned from Assistants API to Chat Completions API for improved speed and cost efficiency.
 - Stores conversations locally in a SQLite database.
 - The database, config file, and cache files are stored in the `home directory/.droid`.
 

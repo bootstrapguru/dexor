@@ -40,6 +40,7 @@ final class ListFiles
 
 ?>
 ```
+
 ## Register the Custom Tool
 
 To use the custom tool in ChatAssistant, follow these steps:

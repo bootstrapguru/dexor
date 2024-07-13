@@ -38,3 +38,17 @@ droid
 ```
 
 I will display all my available commands and options. Dive into the documentation to explore my full capabilities and features.
+
+## Creating a New Assistant
+
+To create a new assistant for your project, use the `--new` parameter with the `droid` command:
+
+```sh
+droid --new
+```
+
+This command will guide you through the process of setting up a new assistant for your project.
+
+## Onboarding
+
+During the onboarding process, you'll now have the ability to select your preferred AI service and the respective models. Additionally, conversations will be stored locally in a SQLite database for improved speed and cost efficiency. Follow the steps in the [Onboarding Guide](onboarding.md) to configure me for your project.
