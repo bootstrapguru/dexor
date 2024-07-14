@@ -4,32 +4,32 @@ return [
     /*
      * AI Service
      */
-    'ai_service' => env('DROID_AI_SERVICE', 'openai'),
+    'ai_service' => env('DEXOR_AI_SERVICE', 'openai'),
 
     /*
      * API Key
      */
-    'api_key' => env('DROID_API_KEY'),
+    'api_key' => env('DEXOR_API_KEY'),
 
     /*
      * OpenAI Model
      */
-    'model' => env('DROID_MODEL'),
+    'model' => env('DEXOR_MODEL'),
 
     /*
      * OpenAI Assistant ID
      */
-    'assistant_id' => env('DROID_ASSISTANT_ID'),
+    'assistant_id' => env('DEXOR_ASSISTANT_ID'),
 
     /*
      * Prompt for the Assistant
      */
-    'prompt' => env('DROID_PROMPT'),
+    'prompt' => env('DEXOR_PROMPT'),
 
     /*
      * Default Prompt for the Assistant
      */
-    'default_prompt' => 'You are an AI assistant called Droid, skilled in software development and code generation.
+    'default_prompt' => 'You are an AI assistant called Dexor, skilled in software development and code generation.
             You will receive instructions on a feature request or bug fix.
             Your task is to generate the necessary code changes for a web application to implement the feature and write the changes to the files.
             Follow the workflow outlined below and use the provided tools to achieve the desired outcome.

@@ -2,7 +2,7 @@ import { defineConfig } from 'vitepress'
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
-  title: "Droid Docs",
+  title: "Dexor Docs",
   description: "AI Robot that codes for you",
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
@@ -39,7 +39,7 @@ export default defineConfig({
       ],
 
       socialLinks: [
-          { icon: 'github', link: 'https://github.com/bootstrapguru/droid.dev' }
+          { icon: 'github', link: 'https://github.com/bootstrapguru/dexor.dev' }
       ]
   }
 })

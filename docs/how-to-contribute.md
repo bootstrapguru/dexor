@@ -1,10 +1,10 @@
-We appreciate your interest in contributing to droid.dev! There are several ways you can get involved in the project:
+We appreciate your interest in contributing to dexor.dev! There are several ways you can get involved in the project:
 
 ## Reporting Issues
 
-If you encounter any issues or bugs while using droid.dev, please report them by following these steps:
+If you encounter any issues or bugs while using dexor.dev, please report them by following these steps:
 
-1. Navigate to our [Issue Tracker](https://github.com/bootstrapguru/droid.dev/issues).
+1. Navigate to our [Issue Tracker](https://github.com/bootstrapguru/dexor.dev/issues).
 2. Check if the issue has already been reported. If it has, you can add any additional information you have.
 3. If the issue has not been reported, create a new issue and provide as much detail as possible, including steps to reproduce the problem and any relevant logs or screenshots.
 
@@ -13,12 +13,12 @@ If you encounter any issues or bugs while using droid.dev, please report them by
 We welcome pull requests! To submit a pull request, follow these steps:
 
 1. **Fork the Repository:**
-   - Go to our [GitHub repository](https://github.com/bootstrapguru/droid.dev) and click the "Fork" button.
+   - Go to our [GitHub repository](https://github.com/bootstrapguru/dexor.dev) and click the "Fork" button.
 
 2. **Clone Your Fork:**
    ```bash
-   git clone https://github.com/your-username/droid.dev.git droid
-   cd droid
+   git clone https://github.com/your-username/dexor.dev.git dexor
+   cd dexor
    ```
 
 3. **Create a Branch:**
@@ -57,7 +57,7 @@ You can also contribute by improving our documentation. If you find any errors o
 1. **Fork and Clone the Repository** (same steps as above).
 2. **Install Dependencies:**
    ```bash
-   cd droid
+   cd dexor
    npm install
    ```
 
@@ -78,7 +78,7 @@ You can also contribute by improving our documentation. If you find any errors o
 
 Join our community to stay up-to-date and to discuss ideas and features:
 
-- [GitHub Discussions](https://github.com/bootstrapguru/droid.dev/discussions)
+- [GitHub Discussions](https://github.com/bootstrapguru/dexor.dev/discussions)
 - [Twitter](https://twitter.com/vijaytupakula)
 
-Thank you for your interest in contributing to droid.dev! Your support and contributions help us improve and grow the project.
+Thank you for your interest in contributing to dexor.dev! Your support and contributions help us improve and grow the project.

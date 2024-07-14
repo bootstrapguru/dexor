@@ -1,6 +1,6 @@
 # License
 
-[summary](https://github.com/bootstrapguru/droid.dev/blob/2546d227f9d56cbaae619398f01a1dae5ff4018d/LICENSE)
+[summary](https://github.com/bootstrapguru/dexor.dev/blob/2546d227f9d56cbaae619398f01a1dae5ff4018d/LICENSE)
 
 ## GNU GENERAL PUBLIC LICENSE
 ## Version 3, 29 June 2007

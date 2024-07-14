@@ -10,9 +10,9 @@ use Illuminate\Console\Command;
 
 use function Termwind\ask;
 
-class DroidCommand extends Command
+class DexorCommand extends Command
 {
-    public $signature = 'droid {--new : Create a new assistant}';
+    public $signature = 'dexor {--new : Create a new assistant}';
 
     public $description = 'Allows you to create/update a feature, run commands, and create a new assistant';
 

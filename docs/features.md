@@ -1,16 +1,16 @@
 # Features
 
-🤖 Welcome to Droid Dev! Let's explore the powerful features that will make your development experience smoother and more efficient.
+🤖 Welcome to Dexor Dev! Let's explore the powerful features that will make your development experience smoother and more efficient.
 
 ## Multiple AI Service Support
 
-Droid Dev supports integration with multiple AI services, giving you the flexibility to choose the service and model that best fits your needs. Whether it's OpenAI, or another service, you can seamlessly switch and leverage different AI capabilities within your projects.
+Dexor Dev supports integration with multiple AI services, giving you the flexibility to choose the service and model that best fits your needs. Whether it's OpenAI, or another service, you can seamlessly switch and leverage different AI capabilities within your projects.
 
 ## Project-Specific Assistants
 
 - **Create Assistants for Each Project**: Easily create a new assistant for each of your projects using the `--new` parameter.
   ```sh
-  droid --new
+  dexor --new
   ```
 
 - **Diverse Assistants**: Each assistant can be configured differently with unique models, prompts, and AI services. This means you can have multiple assistants tailored to specific project requirements, all existing simultaneously.
@@ -35,6 +35,6 @@ All conversations are now stored locally in a SQLite database. This enhancement 
 
 - **Assistant Creation**: Ability to create a new assistant for each project using the `--new` parameter.
 - **Chat Completions API**: Transitioned from Assistants API to Chat Completions API for improved speed and cost efficiency.
-- **Local Storage**: Conversations are now stored locally in a SQLite database. The database, config file, and cache files are stored in the `home directory/.droid`.
+- **Local Storage**: Conversations are now stored locally in a SQLite database. The database, config file, and cache files are stored in the `home directory/.dexor`.
 
 Let's work together to build something amazing!

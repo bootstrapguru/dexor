@@ -3,12 +3,12 @@
 layout: home
 
 hero:
-  name: "Droid Dev"
+  name: "Dexor Dev"
   text: "AI Driven Development"
   tagline: "Automate your development tasks with ease using your preferred AI service"
   actions:
     - theme: brand
-      text: What is Droid Dev
+      text: What is Dexor Dev
       link: /who-am-i
     - theme: alt
       text: Getting Started

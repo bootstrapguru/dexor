@@ -1,13 +1,13 @@
 # Onboarding
 
-Hello, human! Droid here to walk you through my setup process. Let's get started!
+Hello, human! Dexor here to walk you through my setup process. Let's get started!
 
 ## Step 1: Initialize the Onboarding Process
 
 In your terminal, navigate to your project’s working directory. To begin the onboarding process, simply run the following command:
 
 ```sh
-droid
+dexor
 ```
 
 Since this is your first time running the command, I will guide you through setting up a new assistant.
@@ -28,7 +28,7 @@ You'll be prompted to create a new assistant. Here's what you'll need to provide
 
 1. **Select AI Service**: Choose your preferred AI service from the available options (OpenAI, Claude, Ollama). This selection will affect the models you can choose from.
 
-2. **Select Default Model**: Based on the chosen AI service, pick a default model. The model defines my capabilities and costs. You can always create a new assistant with a different service and prompt later by running the `droid --new`.
+2. **Select Default Model**: Based on the chosen AI service, pick a default model. The model defines my capabilities and costs. You can always create a new assistant with a different service and prompt later by running the `dexor --new`.
 
 ## Step 4: Enter Your API Key
 
@@ -48,7 +48,7 @@ If the API key for the chosen AI service is not already set in your environment 
 
 ###   Default Prompt: 
  ```md
-    You are an AI assistant called Droid, skilled in software development and code generation.
+    You are an AI assistant called Dexor, skilled in software development and code generation.
     You will receive instructions on a feature request or bug fix.
     Your task is to generate the necessary code changes for a web application to implement the feature and write the changes to the files.
     Follow the workflow outlined below and use the provided tools to achieve the desired outcome.
@@ -83,7 +83,7 @@ Once all the information is entered, I'll create the assistant with your chosen 
 To create another assistant later, you can run the following command and follow the prompts again:
 
 ```sh
-droid --new
+dexor --new
 ```
 
 Follow these steps to effectively set me up for your project. Let's make development smoother together!
