@@ -37,4 +37,12 @@ Once installed, activate me with the following command:
 droid
 ```
 
-I will display all my available commands and options. Dive into the documentation to explore my full capabilities and features.
+Running this command will start the onboarding process, allowing you to create an assistant by choosing a model, service, and prompt. The assistant will be created at the project level. If you want to create a new assistant at any time, you can pass the `--new` parameter:
+
+```sh
+droid --new
+```
+
+## Onboarding
+
+During the onboarding process, you'll now have the ability to select your preferred AI service and the respective models. Additionally, conversations will be stored locally in a SQLite database for improved speed and cost efficiency. Follow the steps in the [Onboarding Guide](onboarding.md) to configure me for your project.

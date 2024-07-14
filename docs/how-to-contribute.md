@@ -1,5 +1,3 @@
-
-
 We appreciate your interest in contributing to droid.dev! There are several ways you can get involved in the project:
 
 ## Reporting Issues
@@ -46,9 +44,10 @@ We welcome pull requests! To submit a pull request, follow these steps:
 
 To maintain consistency, please ensure your code adheres to the following standards:
 
-- Follow the [JavaScript Standard Style](https://standardjs.com/).
+- Follow the [PSR-12 Coding Standard](https://www.php-fig.org/psr/psr-12/).
+- Use [PHP CS Fixer](https://github.com/FriendsOfPHP/PHP-CS-Fixer) to automatically fix coding standards issues.
 - Document your code thoroughly with comments.
-- Write tests for new features and bug fixes.
+- Write tests for new features and bug fixes using [PHPUnit](https://phpunit.de/).
 - Ensure all tests pass before submitting a pull request.
 
 ## Improving Documentation
@@ -56,13 +55,24 @@ To maintain consistency, please ensure your code adheres to the following standa
 You can also contribute by improving our documentation. If you find any errors or areas that need clarification, follow these steps:
 
 1. **Fork and Clone the Repository** (same steps as above).
-2. **Navigate to the Documentation Directory:**
+2. **Install Dependencies:**
    ```bash
-   cd docs
+   cd droid
+   npm install
    ```
-3. **Make Your Changes:**
-   - Edit the markdown files to improve the content.
-4. **Push Your Changes** and **Create a Pull Request** (same steps as above).
+
+3. **Run the Documentation Locally:**
+   ```bash
+   npm run docs:dev
+   ```
+
+   This will start a local server using Vite, allowing you to view and edit the documentation in real-time.
+
+4. **Editing Markdown Files:**
+   - The documentation is written in Markdown files located in the `docs` directory.
+   - Make your changes to the relevant `.md` files.
+
+5. **Push Your Changes** and **Create a Pull Request** (same steps as above).
 
 ## Join the Community
 

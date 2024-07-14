@@ -32,7 +32,6 @@ export default defineConfig({
               text: 'Contributing',
               items: [
                   { text: 'How to contribute', link: '/how-to-contribute' },
-                  { text: 'Architecture guide', link: '/architecture-guide' },
                   { text: 'License', link: '/license' },
                   { text: 'Donation', link: '/donation' }
               ]

@@ -8,6 +8,8 @@
 
 4. **Write To File**: Writes content to an existing file.
 
+5. **Execute Command**: Executes a terminal command and returns the output. Use this when you need to execute a terminal command like git and other framework commands.
+
 # Custom Tools
 
 To add a custom tool, follow these steps:
@@ -21,10 +23,15 @@ Sample PHP Code:
 ```php
 <?php
 
-namespace App\Tools;
+namespace App
 
-use App\Attributes\Description;
-use function Termwind\render;
+tools;
+
+use App
+ttributes
+description;
+use function Termwind
+ender;
 
 #[Description('List all files and sub directories in the specified path. Use this when you need to list all files and directories.')]
 final class ListFiles
@@ -40,6 +47,7 @@ final class ListFiles
 
 ?>
 ```
+
 ## Register the Custom Tool
 
 To use the custom tool in ChatAssistant, follow these steps:
@@ -49,7 +57,9 @@ To use the custom tool in ChatAssistant, follow these steps:
 
 ```php
 // Import the custom tool file inside ChatAssistant
-use App\Tools\ListFiles;
+use App
+tools
+deiles;
 
 class ChatAssistant {
     // Other code
