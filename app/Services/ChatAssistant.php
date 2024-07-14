@@ -45,6 +45,10 @@ class ChatAssistant
         ]);
     }
 
+    /**
+     * @throws FatalRequestException
+     * @throws RequestException
+     */
     public function getCurrentProject(): Project
     {
         $projectPath = getcwd();
@@ -222,6 +226,10 @@ class ChatAssistant
             : $models->take(5)->pluck('name')->toArray();
     }
 
+    /**
+     * @throws FatalRequestException
+     * @throws RequestException
+     */
     private function selectExistingAssistant(): int
     {
         $assistants = Assistant::all();

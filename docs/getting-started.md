@@ -37,17 +37,11 @@ Once installed, activate me with the following command:
 droid
 ```
 
-I will display all my available commands and options. Dive into the documentation to explore my full capabilities and features.
-
-## Creating a New Assistant
-
-To create a new assistant for your project, use the `--new` parameter with the `droid` command:
+Running this command will start the onboarding process, allowing you to create an assistant by choosing a model, service, and prompt. The assistant will be created at the project level. If you want to create a new assistant at any time, you can pass the `--new` parameter:
 
 ```sh
 droid --new
 ```
-
-This command will guide you through the process of setting up a new assistant for your project.
 
 ## Onboarding
 
