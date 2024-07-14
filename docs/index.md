@@ -3,12 +3,12 @@
 layout: home
 
 hero:
-  name: "Droid Dev"
+  name: "Dexor Dev"
   text: "AI Driven Development"
-  tagline: "Automate your development tasks with ease"
+  tagline: "Automate your development tasks with ease using your preferred AI service"
   actions:
     - theme: brand
-      text: What is Droid Dev
+      text: What is Dexor Dev
       link: /who-am-i
     - theme: alt
       text: Getting Started
@@ -26,4 +26,6 @@ features:
     details: Writes test cases to ensure functionality.
   - title: File Creation
     details: Creates new files and adopts to your existing code structure.
+  - title: AI Service Integration
+    details: Supports multiple AI services and their respective models for enhanced flexibility.
 ---

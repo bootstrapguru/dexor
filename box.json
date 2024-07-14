@@ -10,7 +10,7 @@
     ],
     "files": [
         "composer.json",
-        "droid_config"
+        "dexor_config"
     ],
     "exclude-composer-files": false,
     "exclude-dev-files": false,

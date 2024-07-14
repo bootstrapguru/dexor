@@ -6,7 +6,7 @@ use Dotenv\Dotenv;
 use Exception;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\Storage; // Import Artisan facade to run commands
+use Illuminate\Support\Facades\Storage;
 
 use function Laravel\Prompts\password;
 
@@ -17,12 +17,11 @@ class OnBoardingSteps
     /**
      * @throws Exception
      */
-    public function isCompleted($droidCommand): bool
+    public function isCompleted($dexorCommand): bool
     {
         return $this->configurationFileExists()
             && $this->viewsFolderExists()
-            && $this->APIKeyExists()
-            && $this->setupDatabase($droidCommand);
+            && $this->setupDatabase($dexorCommand);
     }
 
     private function viewsFolderExists(): bool
@@ -56,31 +55,28 @@ class OnBoardingSteps
         return true;
     }
 
-    /**
-     * @throws Exception
-     */
-    private function APIKeyExists(): bool
+    public function requestAPIKey(string $service): string
     {
-        if (! config('droid.api_key')) {
-            $apiKey = password(
-                label: '🤖: Enter your OpenAI API key to continue',
-                placeholder: 'sk-xxxxxx-xxxxxx-xxxxxx-xxxxxx',
-                hint: 'You can find your API key in your OpenAI dashboard'
-            );
-            $this->setConfigValue('DROID_API_KEY', $apiKey);
-        }
+        $apiKey = password(
+            label: "🤖: Enter your {$service} API key to continue",
+            placeholder: 'sk-xxxxxx-xxxxxx-xxxxxx-xxxxxx',
+            hint: "You can find your API key in your {$service} dashboard"
+        );
 
-        return true;
+        $apiKeyConfigName = strtoupper($service).'_API_KEY';
+        $this->setConfigValue($apiKeyConfigName, $apiKey);
+
+        return $apiKey;
     }
 
-    protected function setupDatabase($droidCommand): bool
+    protected function setupDatabase($dexorCommand): bool
     {
         $databasePath = Storage::disk('home')->path('database.sqlite');
 
-        if (!file_exists($databasePath)) {
+        if (! file_exists($databasePath)) {
             Storage::disk('home')->put('database.sqlite', '');
         }
-        $droidCommand->call('migrate', ['--force' => true]);
+        $dexorCommand->call('migrate', ['--force' => true]);
 
         return true;
     }
@@ -130,8 +126,8 @@ class OnBoardingSteps
             $envValues = $dotenv->load();
 
             foreach ($envValues as $key => $value) {
-                $parsedKey = strtolower(str_replace('DROID_', '', $key));
-                Config::set('droid.'.$parsedKey, $value);
+                $parsedKey = strtolower(str_replace('_API_KEY', '', $key));
+                Config::set('aiproviders.'.strtolower($parsedKey).'.api_key', $value);
             }
 
             return true;

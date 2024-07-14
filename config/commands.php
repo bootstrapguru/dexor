@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'default' => \App\Commands\DroidCommand::class,
+    'default' => \App\Commands\DexorCommand::class,
 
     /*
     |--------------------------------------------------------------------------

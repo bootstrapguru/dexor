@@ -1,13 +1,13 @@
 {
-    "name": "bootstrapguru/droid",
+    "name": "bootstrapguru/dexor",
     "description": "An AI Engineer that actually codes for you",
-    "keywords": ["ai", "droid", "developer", "console", "cli"],
-    "homepage": "https://droid.dev",
+    "keywords": ["ai", "dexor", "developer", "console", "cli"],
+    "homepage": "https://dexor.dev",
     "type": "project",
     "license": "MIT",
     "support": {
-        "issues": "https://github.com/bootstrapguru/droid/issues",
-        "source": "https://github.com/bootstrapguru/droid"
+        "issues": "https://github.com/bootstrapguru/dexor/issues",
+        "source": "https://github.com/bootstrapguru/dexor"
     },
     "authors": [
         {
@@ -23,7 +23,8 @@
         "illuminate/view": "^11.5",
         "laravel-zero/phar-updater": "^1.4",
         "openai-php/client": "^0.10.1",
-        "saloonphp/saloon": "^3.9"
+        "saloonphp/saloon": "^3.9",
+        "spatie/laravel-data": "^4.7"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
@@ -54,5 +55,5 @@
     },
     "minimum-stability": "stable",
     "prefer-stable": true,
-    "bin": ["builds/droid"]
+    "bin": ["builds/dexor"]
 }

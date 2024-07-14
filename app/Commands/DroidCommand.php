@@ -3,18 +3,25 @@
 namespace App\Commands;
 
 use App\Services\ChatAssistant;
+use App\Tools\ExecuteCommand;
 use App\Utils\OnBoardingSteps;
 use Exception;
 use Illuminate\Console\Command;
 
 use function Termwind\ask;
-use function Termwind\render;
 
-class DroidCommand extends Command
+class DexorCommand extends Command
 {
-    public $signature = 'droid';
+    public $signature = 'dexor {--new : Create a new assistant}';
 
-    public $description = 'Allows you to create/update a feature';
+    public $description = 'Allows you to create/update a feature, run commands, and create a new assistant';
+
+    public function __construct(
+        private readonly ChatAssistant  $chatAssistant,
+        private readonly ExecuteCommand $executeCommand
+    ) {
+        parent::__construct();
+    }
 
     /**
      * @throws Exception
@@ -26,12 +33,11 @@ class DroidCommand extends Command
             return self::FAILURE;
         }
 
-        $chatAssistant = new ChatAssistant;
-        $thread = $chatAssistant->createThread();
+        if ($this->option('new')) {
+            $this->chatAssistant->createNewAssistant();
+        }
 
-        render(view('assistant', [
-            'answer' => 'How can I help you today?',
-        ]));
+        $thread = $this->chatAssistant->createThread();
 
         while (true) {
             $message = ask('<span class="mt-1 mx-1">🍻:</span>');
@@ -40,7 +46,11 @@ class DroidCommand extends Command
                 break;
             }
 
-            $chatAssistant->getAnswer($thread, $message);
+            if (str_starts_with($message, '/')) {
+                $this->executeCommand->handle(substr($message, 1));
+            } else {
+                $this->chatAssistant->getAnswer($thread, $message);
+            }
         }
 
         return self::SUCCESS;

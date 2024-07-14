@@ -2,17 +2,21 @@
 
 namespace App\Services;
 
+use App\Data\AIModelData;
 use App\Models\Assistant;
 use App\Models\Project;
-use App\Services\Request\ChatRequest;
 use App\Tools\ExecuteCommand;
 use App\Tools\ListFiles;
 use App\Tools\ReadFile;
 use App\Tools\UpdateFile;
 use App\Tools\WriteToFile;
 use App\Traits\HasTools;
+use App\Utils\OnBoardingSteps;
 use Exception;
+use Illuminate\Support\Collection;
 use ReflectionException;
+use Saloon\Exceptions\Request\FatalRequestException;
+use Saloon\Exceptions\Request\RequestException;
 
 use function Laravel\Prompts\form;
 use function Laravel\Prompts\select;
@@ -23,12 +27,15 @@ class ChatAssistant
 {
     use HasTools;
 
+    private const DEFAULT_SERVICE = 'openai';
+    private OnBoardingSteps $onBoardingSteps;
+
     /**
-     * @throws Exception
+     * @throws ReflectionException
      */
-    public function __construct()
+    public function __construct(OnBoardingSteps $onBoardingSteps)
     {
-        // register the tools
+        $this->onBoardingSteps = $onBoardingSteps;
         $this->register([
             ExecuteCommand::class,
             WriteToFile::class,
@@ -39,69 +46,65 @@ class ChatAssistant
     }
 
     /**
-     * @throws Exception
+     * @throws FatalRequestException
+     * @throws RequestException
      */
     public function getCurrentProject(): Project
     {
         $projectPath = getcwd();
         $project = Project::where('path', $projectPath)->first();
 
-        if (! $project) {
-            $userChoice = select(
-                'No existing project found. Would you like to create a new assistant or use an existing one?',
-                [
-                    'create_new' => 'Create New Assistant',
-                    'use_existing' => 'Use Existing Assistant',
-                ]
-            );
-
-            switch ($userChoice) {
-                case 'create_new':
-                    $assistantId = $this->createNewAssistant()->id;
-                    break;
-                case 'use_existing':
-                    $assistants = Assistant::all();
-                    if ($assistants->isEmpty()) {
-                        $assistantId = $this->createNewAssistant()->id;
-                    } else {
-                        $options = $assistants->pluck('name', 'id')->toArray();
-                        $assistantId = select('Select an assistant', $options);
-                    }
-                    break;
-                default:
-                    throw new Exception('Invalid choice');
-            }
-
-            $project = Project::create([
-                'path' => $projectPath,
-                'assistant_id' => $assistantId,
-            ]);
+        if ($project) {
+            return $project;
         }
 
-        return $project;
+        $userChoice = select(
+            label: 'No existing project found. Would you like to create a new assistant or use an existing one?',
+            options: [
+                'create_new' => 'Create New Assistant',
+                'use_existing' => 'Use Existing Assistant',
+            ]
+        );
+
+        $assistantId = match ($userChoice) {
+            'create_new' => $this->createNewAssistant()->id,
+            'use_existing' => $this->selectExistingAssistant(),
+            default => throw new Exception('Invalid choice'),
+        };
+
+        return Project::create([
+            'path' => $projectPath,
+            'assistant_id' => $assistantId,
+        ]);
     }
 
-    public function createNewAssistant()
+    /**
+     * @throws FatalRequestException
+     * @throws RequestException
+     * @throws Exception
+     */
+    public function createNewAssistant(): Assistant
     {
         $path = getcwd();
-        // get Folder name from path
         $folderName = basename($path);
+
+        $service = $this->selectService();
+        $this->ensureAPIKey($service);
+        $models = $this->getModels($service);
 
         $assistant = form()
             ->text(label: 'What is the name of the assistant?', default: ucfirst($folderName.' Project'), required: true, name: 'name')
             ->text(label: 'What is the description of the assistant? (optional)', name: 'description')
-            ->select(
-                label: '🤖 Choose the Model for the assistant',
-                options: ['gpt-4o', 'gpt-4-turbo', 'gpt-4-turbo-preview', 'gpt-3.5-turbo'],
-                default: 'gpt-3.5-turbo',
-                hint: 'The model to use for the assistant.',
+            ->search(
+                label: 'Choose the Model for the assistant',
+                options: fn (string $value) => $this->filterModels($models, $value),
                 name: 'model'
             )
             ->textarea(
                 label: 'Customize the prompt for the assistant?',
-                default: config('droid.prompt') ?? '',
+                default: config('dexor.default_prompt', ''),
                 required: true,
-                hint: 'Make sure to include any details of the project that the assistant should know about. For example, type of framework, language, etc.',
+                hint: 'Include any project details that the assistant should know about.',
                 rows: 20,
                 name: 'prompt'
             )
@@ -112,6 +115,7 @@ class ChatAssistant
             'description' => $assistant['description'],
             'model' => $assistant['model'],
             'prompt' => $assistant['prompt'],
+            'service' => $service,
         ]);
     }
 
@@ -121,22 +125,31 @@ class ChatAssistant
     public function createThread()
     {
         $project = $this->getCurrentProject();
-        $threadTitle = 'New Thread';
+        $latestThread = $project->threads()->latest()->first();
 
-        return spin(
+        if ($latestThread && $this->shouldUseExistingThread()) {
+            return $latestThread;
+        }
+
+        $thread = spin(
             fn () => $project->threads()->create([
                 'assistant_id' => $project->assistant_id,
-                'title' => $threadTitle,
+                'title' => 'New Thread',
             ]),
             'Creating New Thread...'
         );
+
+        render(view('assistant', [
+            'answer' => 'How can I help you?',
+        ]));
+
+        return $thread;
     }
 
     /**
-     * @throws ReflectionException
      * @throws Exception
      */
-    public function getAnswer($thread, $message): string
+    public function getAnswer($thread, ?string $message): string
     {
         if ($message !== null) {
             $thread->messages()->create([
@@ -147,49 +160,144 @@ class ChatAssistant
 
         $thread->load('messages');
 
-        $connector = new AIConnector;
-        $chatRequest = new ChatRequest($thread, $this->registered_tools);
-        $response = $connector->send($chatRequest)->json();
+        $service = $thread->assistant->service;
+        $connector = $this->getConnector($service);
+        $chatRequest = $this->getChatRequest($service, $thread);
 
-        $choice = $response['choices'][0];
+        $message = spin(
+            fn () => $connector->send($chatRequest)->dto(),
+            "Getting response from {$thread->assistant->service}: {$thread->assistant->model}"
+        );
 
-        return $this->handleTools($thread, $choice);
+        return $this->handleTools($thread, $message);
     }
 
     /**
-     * @throws ReflectionException
      * @throws Exception
      */
-    public function handleTools($thread, $choice): string
+    private function handleTools($thread, $message): string
     {
-        $answer = $choice['message']['content'];
+        $answer = $message->content;
 
-        $thread->messages()->create($choice['message']);
+        $thread->messages()->create($message->toArray());
+        if ($message->tool_calls !== null && $message->tool_calls->isNotEmpty()) {
+            $this->renderAnswer($answer);
 
-        if ($choice['finish_reason'] === 'tool_calls') {
-
-            foreach ($choice['message']['tool_calls'] as $toolCall) {
-                try {
-                    $toolResponse = $this->call($toolCall['function']['name'], json_decode($toolCall['function']['arguments'], true));
-
-                    $thread->messages()->create([
-                        'role' => 'tool',
-                        'tool_call_id' => $toolCall['id'],
-                        'name' => $toolCall['function']['name'],
-                        'content' => $toolResponse,
-                    ]);
-
-                } catch (Exception $e) {
-                    throw new Exception('Error calling tool: '.$e->getMessage());
-                }
+            foreach ($message->tool_calls as $toolCall) {
+                $this->executeToolCall($thread, $toolCall);
             }
-
-            // return the tool response to the AI to continue the conversation
             return $this->getAnswer($thread, null);
         }
 
-        render(view('assistant', ['answer' => $answer]));
-
+        $this->renderAnswer($answer);
         return $answer;
+    }
+
+    private function selectService(): string
+    {
+        return select(
+            label: 'Choose the Service for the assistant',
+            options: array_keys(config('aiproviders')),
+            default: self::DEFAULT_SERVICE
+        );
+    }
+
+    /**
+     * @throws Exception
+     */
+    private function getModels(string $service): Collection
+    {
+        $connectorClass = config("aiproviders.{$service}.connector");
+        $listModelsRequestClass = config("aiproviders.{$service}.listModelsRequest");
+
+        if ($listModelsRequestClass !== null) {
+            $connector = new $connectorClass();
+            return $connector->send(new $listModelsRequestClass())->dto();
+        }
+
+        return collect(config("aiproviders.{$service}.models"))
+            ->map(fn ($model) => AIModelData::from(['name' => $model]));
+    }
+
+    private function filterModels(Collection $models, string $value): array
+    {
+        return strlen($value) > 0
+            ? $models->filter(fn ($model) => str_contains($model->name, $value))->pluck('name')->toArray()
+            : $models->take(5)->pluck('name')->toArray();
+    }
+
+    /**
+     * @throws FatalRequestException
+     * @throws RequestException
+     */
+    private function selectExistingAssistant(): int
+    {
+        $assistants = Assistant::all();
+        if ($assistants->isEmpty()) {
+            return $this->createNewAssistant()->id;
+        }
+
+        $options = $assistants->pluck('name', 'id')->toArray();
+        return select(label: 'Select an assistant', options: $options);
+    }
+
+    private function shouldUseExistingThread(): bool
+    {
+        return select(
+            label: 'Found Existing thread, do you want to continue the conversation or start new?',
+            options: [
+                'use_existing' => 'Continue',
+                'create_new' => 'Start New Thread',
+            ]
+        ) === 'use_existing';
+    }
+
+    private function getConnector(string $service): object
+    {
+        $connectorClass = config("aiproviders.{$service}.connector");
+        return new $connectorClass();
+    }
+
+    private function getChatRequest(string $service, $thread): object
+    {
+        $chatRequestClass = config("aiproviders.{$service}.chatRequest");
+        return new $chatRequestClass($thread, $this->registered_tools);
+    }
+
+    private function renderAnswer(?string $answer): void
+    {
+        if ($answer) {
+            render(view('assistant', ['answer' => $answer]));
+        }
+    }
+
+    /**
+     * @throws Exception
+     */
+    private function executeToolCall($thread, $toolCall): void
+    {
+        try {
+            $toolResponse = $this->call(
+                $toolCall->function->name,
+                json_decode($toolCall->function->arguments, true, 512, JSON_THROW_ON_ERROR)
+            );
+
+            $thread->messages()->create([
+                'role' => 'tool',
+                'tool_call_id' => $toolCall->id,
+                'name' => $toolCall->function->name,
+                'content' => $toolResponse,
+            ]);
+        } catch (Exception $e) {
+            throw new Exception("Error calling tool: {$e->getMessage()}");
+        }
+    }
+
+    private function ensureAPIKey(string $service): void
+    {
+        $apiKeyConfigName = strtoupper($service).'_API_KEY';
+        if (!config("aiproviders.{$service}.api_key")) {
+            $this->onBoardingSteps->requestAPIKey($service);
+        }
     }
 }

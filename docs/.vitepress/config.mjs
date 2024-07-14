@@ -2,7 +2,7 @@ import { defineConfig } from 'vitepress'
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
-  title: "Droid Docs",
+  title: "Dexor Docs",
   description: "AI Robot that codes for you",
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
@@ -32,7 +32,6 @@ export default defineConfig({
               text: 'Contributing',
               items: [
                   { text: 'How to contribute', link: '/how-to-contribute' },
-                  { text: 'Architecture guide', link: '/architecture-guide' },
                   { text: 'License', link: '/license' },
                   { text: 'Donation', link: '/donation' }
               ]
@@ -40,7 +39,7 @@ export default defineConfig({
       ],
 
       socialLinks: [
-          { icon: 'github', link: 'https://github.com/bootstrapguru/droid.dev' }
+          { icon: 'github', link: 'https://github.com/bootstrapguru/dexor.dev' }
       ]
   }
 })

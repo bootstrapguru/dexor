@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'name' => 'Droid',
+    'name' => 'Dexor',
 
     /*
     |--------------------------------------------------------------------------
@@ -55,6 +55,7 @@ return [
 
     'providers' => [
         App\Providers\AppServiceProvider::class,
+        Spatie\LaravelData\LaravelDataServiceProvider::class
     ],
 
 ];
