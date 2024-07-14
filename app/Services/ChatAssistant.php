@@ -102,7 +102,7 @@ class ChatAssistant
             )
             ->textarea(
                 label: 'Customize the prompt for the assistant?',
-                default: config('droid.default_prompt', ''),
+                default: config('dexor.default_prompt', ''),
                 required: true,
                 hint: 'Include any project details that the assistant should know about.',
                 rows: 20,

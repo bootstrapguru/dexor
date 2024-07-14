@@ -17,11 +17,11 @@ class OnBoardingSteps
     /**
      * @throws Exception
      */
-    public function isCompleted($droidCommand): bool
+    public function isCompleted($dexorCommand): bool
     {
         return $this->configurationFileExists()
             && $this->viewsFolderExists()
-            && $this->setupDatabase($droidCommand);
+            && $this->setupDatabase($dexorCommand);
     }
 
     private function viewsFolderExists(): bool
@@ -62,21 +62,21 @@ class OnBoardingSteps
             placeholder: 'sk-xxxxxx-xxxxxx-xxxxxx-xxxxxx',
             hint: "You can find your API key in your {$service} dashboard"
         );
-        
+
         $apiKeyConfigName = strtoupper($service).'_API_KEY';
         $this->setConfigValue($apiKeyConfigName, $apiKey);
-        
+
         return $apiKey;
     }
 
-    protected function setupDatabase($droidCommand): bool
+    protected function setupDatabase($dexorCommand): bool
     {
         $databasePath = Storage::disk('home')->path('database.sqlite');
 
         if (! file_exists($databasePath)) {
             Storage::disk('home')->put('database.sqlite', '');
         }
-        $droidCommand->call('migrate', ['--force' => true]);
+        $dexorCommand->call('migrate', ['--force' => true]);
 
         return true;
     }

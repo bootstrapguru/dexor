@@ -425,9 +425,9 @@ esbuild@^0.21.3:
   integrity sha512-mg3OPMV4hXywwpoDxu3Qda5xCKQi+vCTZq8S9J/EpkhB2HzKXq4SNFZE3+NK93JYxc8VMSep+lOUSC/RVKaBqw==
   optionalDependencies:
     "@esbuild/aix-ppc64" "0.21.5"
-    "@esbuild/android-arm" "0.21.5"
-    "@esbuild/android-arm64" "0.21.5"
-    "@esbuild/android-x64" "0.21.5"
+    "@esbuild/andexor-arm" "0.21.5"
+    "@esbuild/andexor-arm64" "0.21.5"
+    "@esbuild/andexor-x64" "0.21.5"
     "@esbuild/darwin-arm64" "0.21.5"
     "@esbuild/darwin-x64" "0.21.5"
     "@esbuild/freebsd-arm64" "0.21.5"
@@ -538,8 +538,8 @@ rollup@^4.13.0:
   dependencies:
     "@types/estree" "1.0.5"
   optionalDependencies:
-    "@rollup/rollup-android-arm-eabi" "4.18.0"
-    "@rollup/rollup-android-arm64" "4.18.0"
+    "@rollup/rollup-andexor-arm-eabi" "4.18.0"
+    "@rollup/rollup-andexor-arm64" "4.18.0"
     "@rollup/rollup-darwin-arm64" "4.18.0"
     "@rollup/rollup-darwin-x64" "4.18.0"
     "@rollup/rollup-linux-arm-gnueabihf" "4.18.0"

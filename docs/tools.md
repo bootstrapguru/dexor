@@ -65,7 +65,7 @@ class ChatAssistant {
     // Other code
     public function __construct()
     {
-        $this->client = OpenAI::client(config('droid.api_key'));
+        $this->client = OpenAI::client(config('dexor.api_key'));
 
         // register the tools
         $this->register([
