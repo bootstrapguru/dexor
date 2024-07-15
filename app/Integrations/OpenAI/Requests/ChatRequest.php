@@ -3,6 +3,7 @@
 namespace App\Integrations\OpenAI\Requests;
 
 use App\Data\MessageData;
+use App\Data\ToolCallData;
 use App\Models\Thread;
 use Saloon\Contracts\Body\HasBody;
 use Saloon\Enums\Method;
@@ -51,7 +52,16 @@ class ChatRequest extends Request implements HasBody
     public function createDtoFromResponse(Response $response): MessageData
     {
         $data = $response->json();
-        $choice = $data['choices'][0] ?? [];
-        return MessageData::from($choice['message'] ?? []);
+        $message = $data['choices'][0]['message'] ?? [];
+        $tools = collect([]);
+        if (isset($message['tool_calls'])) {
+            foreach ($message['tool_calls'] as $toolCall) {
+                $tools->push(ToolCallData::from($toolCall));
+            }
+
+            $message['tool_calls'] = $tools;
+        }
+
+        return MessageData::from($message ?? []);
     }
 }
