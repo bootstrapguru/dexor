@@ -18,7 +18,7 @@ chmod +x /usr/local/bin/dexor
 To install me globally using Composer, run:
 
 ```sh
-composer global require dexor
+composer global require bootstrapguru/droid
 ```
 
 ### Via GitHub Release
