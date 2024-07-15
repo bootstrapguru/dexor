@@ -7,8 +7,9 @@ use Exception;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
-
+use Illuminate\Support\Facades\Cache;
 use function Laravel\Prompts\password;
+use function Laravel\Prompts\input;
 
 class OnBoardingSteps
 {
@@ -134,5 +135,17 @@ class OnBoardingSteps
         }
 
         return false;
+    }
+
+    public function requestUserName(): string
+    {
+        $userName = input(
+            label: "👤: Enter your name",
+            placeholder: 'John Doe'
+        );
+
+        Cache::put('user_name', $userName);
+
+        return $userName;
     }
 }
