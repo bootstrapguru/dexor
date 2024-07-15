@@ -9,7 +9,7 @@ Checkout the youtube video [here](https://youtu.be/oLmbafcHCKg)
   <a href="https://packagist.org/packages/bootstrapguru/droid"><img src="https://img.shields.io/packagist/v/bootstrapguru/droid.svg?label=stable" alt="Latest Stable Version" /></a>
   <a href="https://packagist.org/packages/bootstrapguru/droid"><img src="https://img.shields.io/packagist/l/bootstrapguru/droid.svg" alt="License" /></a>
 </p>
-<img src="https://raw.githubusercontent.com/bootstrapguru/dexor.dev/main/resources/images/droid.webp">
+<img src="https://raw.githubusercontent.com/bootstrapguru/dexor/main/resources/images/dexor.webp">
 
 ## Documentation
 
