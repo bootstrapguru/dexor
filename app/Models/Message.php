@@ -26,9 +26,4 @@ class Message extends Model
     {
         return $this->belongsTo(Thread::class);
     }
-
-    public function tool()
-    {
-        return $this->belongsTo(Tool::class);
-    }
 }
