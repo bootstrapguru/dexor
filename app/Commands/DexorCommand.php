@@ -7,7 +7,7 @@ use App\Tools\ExecuteCommand;
 use App\Utils\OnBoardingSteps;
 use Exception;
 use Illuminate\Console\Command;
-
+use App\Models\Assistant;
 use function Termwind\ask;
 
 class DexorCommand extends Command
@@ -34,7 +34,9 @@ class DexorCommand extends Command
         }
 
         if ($this->option('new')) {
-            $this->chatAssistant->createNewAssistant();
+            $assistant = $this->chatAssistant->createNewAssistant();
+            Assistant::query()->update(['current' => false]);
+            $assistant->update(['current' => true]);
         }
 
         $thread = $this->chatAssistant->createThread();
