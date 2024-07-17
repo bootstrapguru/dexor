@@ -129,5 +129,185 @@ class ChatAssistant
         }
     }
 
-    // ... (rest of the file remains unchanged)
+    /**
+     * @throws Exception
+     */
+    public function createThread()
+    {
+        $project = $this->getCurrentProject();
+        $latestThread = $project->threads()->latest()->first();
+
+        if ($latestThread && $this->shouldUseExistingThread()) {
+            return $latestThread;
+        }
+
+        $thread = spin(
+            fn () => $project->threads()->create([
+                'assistant_id' => $project->assistant_id,
+                'title' => 'New Thread',
+            ]),
+            'Creating New Thread...'
+        );
+
+        render(view('assistant', [
+            'answer' => 'How can I help you?',
+        ]));
+
+        return $thread;
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function getAnswer($thread, ?string $message): string
+    {
+        if ($message !== null) {
+            $thread->messages()->create([
+                'role' => 'user',
+                'content' => $message,
+            ]);
+        }
+
+        $thread->load('messages');
+
+        $service = $thread->assistant->service;
+        $connector = $this->getConnector($service);
+        $chatRequest = $this->getChatRequest($service, $thread);
+
+        $message = spin(
+            fn () => $connector->send($chatRequest)->dto(),
+            "Getting response from {$thread->assistant->service}: {$thread->assistant->model}"
+        );
+
+        return $this->handleTools($thread, $message);
+    }
+
+    /**
+     * @throws Exception
+     */
+    private function handleTools($thread, $message): string
+    {
+        $answer = $message->content;
+
+        $thread->messages()->create($message->toArray());
+        if ($message->tool_calls !== null && $message->tool_calls->isNotEmpty()) {
+            $this->renderAnswer($answer);
+
+            foreach ($message->tool_calls as $toolCall) {
+                $this->executeToolCall($thread, $toolCall);
+            }
+            return $this->getAnswer($thread, null);
+        }
+
+        $this->renderAnswer($answer);
+        return $answer;
+    }
+
+    private function selectService(): string
+    {
+        return select(
+            label: 'Choose the Service for the assistant',
+            options: array_keys(config('aiproviders')),
+            default: self::DEFAULT_SERVICE
+        );
+    }
+
+    /**
+     * @throws Exception
+     */
+    private function getModels(string $service): Collection
+    {
+        $connectorClass = config("aiproviders.{$service}.connector");
+        $listModelsRequestClass = config("aiproviders.{$service}.listModelsRequest");
+
+        if ($listModelsRequestClass !== null) {
+            $connector = new $connectorClass();
+            return $connector->send(new $listModelsRequestClass())->dto();
+        }
+
+        return collect(config("aiproviders.{$service}.models"))
+            ->map(fn ($model) => AIModelData::from(['name' => $model]));
+    }
+
+    private function filterModels(Collection $models, string $value): array
+    {
+        return strlen($value) > 0
+            ? $models->filter(fn ($model) => str_contains($model->name, $value))->pluck('name')->toArray()
+            : $models->take(5)->pluck('name')->toArray();
+    }
+
+    /**
+     * @throws FatalRequestException
+     * @throws RequestException
+     */
+    private function selectExistingAssistant(): int
+    {
+        $assistants = Assistant::all();
+        if ($assistants->isEmpty()) {
+            return $this->createNewAssistant()->id;
+        }
+
+        $options = $assistants->pluck('name', 'id')->toArray();
+        return select(label: 'Select an assistant', options: $options);
+    }
+
+    private function shouldUseExistingThread(): bool
+    {
+        return select(
+            label: 'Found Existing thread, do you want to continue the conversation or start new?',
+            options: [
+                'use_existing' => 'Continue',
+                'create_new' => 'Start New Thread',
+            ]
+        ) === 'use_existing';
+    }
+
+    private function getConnector(string $service): object
+    {
+        $connectorClass = config("aiproviders.{$service}.connector");
+        return new $connectorClass();
+    }
+
+    private function getChatRequest(string $service, $thread): object
+    {
+        $chatRequestClass = config("aiproviders.{$service}.chatRequest");
+        return new $chatRequestClass($thread, $this->registered_tools);
+    }
+
+    private function renderAnswer(?string $answer): void
+    {
+        if ($answer) {
+            render(view('assistant', ['answer' => $answer]));
+        }
+    }
+
+    /**
+     * @throws Exception
+     */
+    private function executeToolCall($thread, $toolCall): void
+    {
+        try {
+            $toolResponse = $this->call(
+                $toolCall->function->name,
+                json_decode($toolCall->function->arguments, true, 512, JSON_THROW_ON_ERROR)
+            );
+
+            $thread->messages()->create([
+                'role' => 'tool',
+                'tool_call_id' => $toolCall->id,
+                'name' => $toolCall->function->name,
+                'content' => $toolResponse,
+            ]);
+        } catch (Exception $e) {
+            throw new Exception("Error calling tool: {$e->getMessage()}");
+        }
+    }
+
+    private function ensureAPIKey(string $service): void
+    {
+        $apiKeyConfigName = strtoupper($service).'_API_KEY';
+        if (!config("aiproviders.{$service}.api_key")) {
+            $this->onBoardingSteps->requestAPIKey($service);
+        }
+    }
 }
