@@ -49,33 +49,41 @@ class ChatAssistant
      * @throws FatalRequestException
      * @throws RequestException
      */
-    public function getCurrentProject(): Project
+    public function getCurrentProject(bool $isNew): Project
     {
         $projectPath = getcwd();
         $project = Project::where('path', $projectPath)->first();
 
-        if ($project) {
+        if ($isNew && $project) {
+            // Update the existing project if isNew is true
+            $project->assistant_id = $this->createNewAssistant()->id; // Update based on new assistant
+            $project->save();
             return $project;
         }
 
-        $userChoice = select(
-            label: 'No existing project found. Would you like to create a new assistant or use an existing one?',
-            options: [
-                'create_new' => 'Create New Assistant',
-                'use_existing' => 'Use Existing Assistant',
-            ]
-        );
+        if (!$project) {
+            // If there's no existing project, create a new one
+            $userChoice = select(
+                label: 'No project found. Would you like to create a new assistant or use an existing one?',
+                options: [
+                    'create_new' => 'Create New Assistant',
+                    'use_existing' => 'Use Existing Assistant',
+                ]
+            );
 
-        $assistantId = match ($userChoice) {
-            'create_new' => $this->createNewAssistant()->id,
-            'use_existing' => $this->selectExistingAssistant(),
-            default => throw new Exception('Invalid choice'),
-        };
+            $assistantId = match ($userChoice) {
+                'create_new' => $this->createNewAssistant()->id,
+                'use_existing' => $this->selectExistingAssistant(),
+                default => throw new Exception('Invalid choice'),
+            };
 
-        return Project::create([
-            'path' => $projectPath,
-            'assistant_id' => $assistantId,
-        ]);
+            return Project::create([
+                'path' => $projectPath,
+                'assistant_id' => $assistantId,
+            ]);
+        }
+
+        return $project;
     }
 
     /**
@@ -122,9 +130,9 @@ class ChatAssistant
     /**
      * @throws Exception
      */
-    public function createThread()
+    public function createThread(bool $isNew): \App\Models\Thread
     {
-        $project = $this->getCurrentProject();
+        $project = $this->getCurrentProject($isNew);
         $latestThread = $project->threads()->latest()->first();
 
         if ($latestThread && $this->shouldUseExistingThread()) {
