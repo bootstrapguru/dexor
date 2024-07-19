@@ -1,21 +1,29 @@
 <?php
 
+namespace Tests\Unit;
+
 use App\Models\Assistant;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-uses(RefreshDatabase::class);
+class AssistantTest extends TestCase
+{
+    use RefreshDatabase;
 
-// Simulate assistant update functionality test
-test('assistant update functionality', function () {
-    // Arrange: Create an assistant and set up data for the test
-    $assistant = Assistant::create(['name' => 'Original Assistant']);
+    /** @test */
+    public function it_can_update_assistant_name()
+    {
+        // Arrange
+        $assistant = Assistant::create([
+            'name' => 'Original Assistant',
+            'model' => 'gpt-3.5-turbo',
+            'prompt' => 'This is a test prompt.',
+        ]);
 
-    // Act: Update the assistant
-    $assistant->name = 'Updated Assistant';
-    $assistant->save();
+        // Act
+        $assistant->update(['name' => 'Updated Assistant']);
 
-    // Assert: Check if the name was updated
-    $updatedAssistant = Assistant::find($assistant->id);
-    expect($updatedAssistant->name)->toEqual('Updated Assistant');
-});
+        // Assert
+        $this->assertEquals('Updated Assistant', $assistant->fresh()->name);
+    }
+}
