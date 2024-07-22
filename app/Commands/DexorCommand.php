@@ -2,12 +2,15 @@
 
 namespace App\Commands;
 
+use App\Prompts\UserInput;
 use App\Services\ChatAssistant;
 use App\Tools\ExecuteCommand;
 use App\Utils\OnBoardingSteps;
 use Exception;
 use Illuminate\Console\Command;
 
+use Laravel\Prompts\TextareaPrompt;
+use function Laravel\Prompts\textarea;
 use function Termwind\ask;
 
 class DexorCommand extends Command
@@ -40,7 +43,8 @@ class DexorCommand extends Command
         $thread = $this->chatAssistant->createThread();
 
         while (true) {
-            $message = ask('<span class="mt-1 mx-1">🍻:</span>');
+            $message = (new UserInput('User: '))->prompt();
+//            $message = textarea('🍻:');
 
             if ($message === 'exit') {
                 break;
