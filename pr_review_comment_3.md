@@ -1,1 +1,0 @@
-The improvements to argument handling and tool call structuring look good. Ensure to update any corresponding documentation to reflect these changes.
