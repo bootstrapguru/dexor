@@ -9,7 +9,7 @@ use App\Tools\ExecuteCommand;
 use App\Tools\ListFiles;
 use App\Tools\ReadFile;
 use App\Tools\UpdateFile;
-use App\Tools\WriteToFile;
+use App\Tools\CreateFile;
 use App\Traits\HasTools;
 use App\Utils\OnBoardingSteps;
 use Exception;
@@ -38,7 +38,7 @@ class ChatAssistant
         $this->onBoardingSteps = $onBoardingSteps;
         $this->register([
             ExecuteCommand::class,
-            WriteToFile::class,
+            CreateFile::class,
             UpdateFile::class,
             ListFiles::class,
             ReadFile::class,

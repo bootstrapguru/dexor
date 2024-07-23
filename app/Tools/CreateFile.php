@@ -7,14 +7,14 @@ use Illuminate\Support\Facades\Storage;
 
 use function Termwind\render;
 
-#[Description('Write content to an existing file at the specified path. Use this when you need to write content to a file.')]
-final class WriteToFile
+#[Description('Create content in a new file at the specified path. This tool allows you to create files with initial content.')]
+final class CreateFile
 {
     public function handle(
-        #[Description('Relative File path to write content to')]
+        #[Description('Relative File path to create the file at')]
         string $file_path,
 
-        #[Description('Content to write to the file')]
+        #[Description('Initial content to write to the file')]
         string $content,
     ): string {
 
@@ -24,16 +24,11 @@ final class WriteToFile
         }
 
         if (Storage::exists($file_path)) {
-            // Get the file content
-            $fileContent = Storage::get($file_path);
-
             render(view('tool', [
-                'name' => 'WriteToFile',
-                'output' => 'The file already exists in the path, attempting to merge....',
+                'name' => 'CreateFile',
+                'output' => 'The file already exists; please choose a different name or update it instead.',
             ]));
-
-            // Append the new content to the file
-            return 'The file already exists in the path, Make sure to merge your suggestion with the existing file without any breaking changes. Once, they are merged, call the update_file function. The current contents of the file are '.$fileContent;
+            return 'The file already exists: '.$file_path;
         }
 
         $directory = dirname($file_path);
@@ -47,7 +42,7 @@ final class WriteToFile
 
         $output = 'Created File: '.$file_path;
         render(view('tool', [
-            'name' => 'WriteToFile',
+            'name' => 'CreateFile',
             'output' => $output,
         ]));
 

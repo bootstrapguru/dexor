@@ -7,16 +7,25 @@ use Illuminate\Support\Facades\Storage;
 
 use function Termwind\render;
 
-#[Description('Update the content of an existing file at the specified path. Use this when you need to update the existing of a file after write_to_file returns a suggestion to merge the content.')]
+#[Description('Update the content of an existing file at the specified path. Use this when you need to update the existing of a file after write_to_file returns a suggestion to merge the content.\nExpected format for `replace_objects`: [ { \\\"find\\\": \\\"text_to_find\\\", \\\"replace\\\": \\\"replacement_text\\\" }, ... ]')]
 final class UpdateFile
 {
     public function handle(
         #[Description('File path to write content to')]
         string $file_path,
 
-        #[Description('Array of objects containing text to find and text to replace. Each object should have `find` and `replace` keys.')]
-        array $replace_objects,
+        #[Description('JSON string format of objects containing text to find and text to replace. Each object should have `find` and `replace` keys.')]
+        string $replace_objects_json,
     ): string {
+
+        // Decode the JSON string into an array
+        $replace_objects = json_decode($replace_objects_json, true);
+
+        // Debug: Dump the replace objects
+        render(view('tool', [
+            'name' => 'UpdateFile',
+            'output' => 'Replace objects: '.print_r($replace_objects, true),
+        ]));
 
         // Make sure it's a relative path
         if (str_contains($file_path, Storage::path(DIRECTORY_SEPARATOR))) {
@@ -34,8 +43,6 @@ final class UpdateFile
             'name' => 'UpdateFile',
             'output' => 'Updating content in the file....',
         ]));
-
-        var_dump($replace_objects);
 
         // Loop through the objects and apply the changes
         foreach ($replace_objects as $object) {

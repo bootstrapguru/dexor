@@ -69,7 +69,7 @@ class ChatAssistant {
 
         // register the tools
         $this->register([
-            WriteToFile::class,
+            CreateFile::class,
             UpdateFile::class,
             ListFiles::class,
             ReadFile::class,
