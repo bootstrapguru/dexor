@@ -33,14 +33,14 @@ class DexorCommand extends Command
             return self::FAILURE;
         }
 
-        if ($this->option('new')) {
-            $this->chatAssistant->createNewAssistant();
-        }
+        // Determine if the new assistant should be created
+        $isNew = $this->option('new'); // Get the value of the --new option
 
-        $thread = $this->chatAssistant->createThread();
+        // Pass the --new option value to the createThread method
+        $thread = $this->chatAssistant->createThread($isNew); // Directly pass value to createThread method
 
         while (true) {
-            $message = ask('<span class="mt-1 mx-1">🍻:</span>');
+            $message = ask('<span class="mt-1 mx-1">🍺:</span>');
 
             if ($message === 'exit') {
                 break;
