@@ -187,8 +187,18 @@ class ChatAssistant
     {
         $answer = $message->content;
 
-        $thread->messages()->create($message->toArray());
-        if ($message->tool_calls !== null && $message->tool_calls->isNotEmpty()) {
+        $messageData = [
+            'role' => $message->role,
+            'content' => $message->content,
+        ];
+
+        if (!empty($message->tool_calls)) {
+            $messageData['tool_calls'] = $message->tool_calls;
+        }
+
+        $thread->messages()->create($messageData);
+
+        if (!empty($message->tool_calls)) {
             $this->renderAnswer($answer);
 
             foreach ($message->tool_calls as $toolCall) {
@@ -292,9 +302,16 @@ class ChatAssistant
 
             $thread->messages()->create([
                 'role' => 'tool',
-                'tool_call_id' => $toolCall->id,
-                'name' => $toolCall->function->name,
                 'content' => $toolResponse,
+                'tool_calls' => [
+                    [
+                        'id' => $toolCall->id,
+                        'function' => [
+                            'name' => $toolCall->function->name,
+                            'arguments' => $toolCall->function->arguments,
+                        ],
+                    ],
+                ],
             ]);
         } catch (Exception $e) {
             throw new Exception("Error calling tool: {$e->getMessage()}");

@@ -55,6 +55,9 @@ class OnBoardingSteps
         return true;
     }
 
+    /**
+     * @throws Exception
+     */
     public function requestAPIKey(string $service): string
     {
         $apiKey = password(
