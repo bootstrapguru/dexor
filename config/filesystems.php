@@ -9,11 +9,11 @@ return [
         ],
         'home' => [
             'driver' => 'local',
-            'root' => $_SERVER['HOME'].'/.dexor',
+            'root' => (isset($_SERVER['HOME']) ? $_SERVER['HOME'] : $_SERVER['USERPROFILE']).'/.dexor',
         ],
         'root' => [
             'driver' => 'local',
-            'root' => $_SERVER['HOME'],
+            'root' => isset($_SERVER['HOME']) ? $_SERVER['HOME'] : $_SERVER['USERPROFILE'],
         ],
         'internal' => [//phar and local
             'driver' => 'local',

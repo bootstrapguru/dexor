@@ -34,7 +34,7 @@ return [
         'sqlite' => [
             'driver' => 'sqlite',
             'url' => env('DB_URL'),
-            'database' => env('DB_DATABASE', $_SERVER['HOME'].'/.dexor/'.'database.sqlite'),
+            'database' => env('DB_DATABASE', (isset($_SERVER['HOME']) ? $_SERVER['HOME'] : $_SERVER['USERPROFILE']).'/.dexor/'.'database.sqlite'),
             'prefix' => '',
             'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
         ],
