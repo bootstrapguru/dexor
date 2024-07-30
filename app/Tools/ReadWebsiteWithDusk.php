@@ -4,10 +4,10 @@ namespace App\Tools;
 
 use App\Attributes\Description;
 use Laravel\Dusk\Browser;
-use Laravel\Dusk\Chrome\ChromeProcess;
 use Facebook\WebDriver\Chrome\ChromeOptions;
 use Facebook\WebDriver\Remote\DesiredCapabilities;
 use Facebook\WebDriver\Remote\RemoteWebDriver;
+use Laravel\Dusk\Chrome\ChromeProcess;
 use Exception;
 
 use function Termwind\render;
@@ -20,10 +20,20 @@ final class ReadWebsiteWithDusk
         string $url,
         #[Description('CSS selector to target specific content (default: body)')]
         ?string $selector = 'body',
-        #[Description('Timeout in seconds for waiting for the selector (default: 30)')]
-        int $timeout = 30
+        #[Description('Timeout in seconds for waiting for the selector (default: 60)')]
+        int $timeout = 60
     ): string {
+        $chromeProcess = null;
+        $driver = null;
+
         try {
+            // Start ChromeDriver
+            $chromeProcess = (new ChromeProcess)->toProcess();
+            
+            if (!$chromeProcess->isRunning()) {
+                $chromeProcess->start();
+            }
+
             $options = (new ChromeOptions)->addArguments([
                 '--headless',
                 '--disable-gpu',
@@ -35,16 +45,12 @@ final class ReadWebsiteWithDusk
                 ChromeOptions::CAPABILITY, $options
             );
 
-            $chromeProcess = (new ChromeProcess)->toProcess();
-            if ($chromeProcess->isStarted()) {
-                $chromeProcess->stop();
-            }
-            $chromeProcess->start();
-
-            $seleniumServerUrl = config('dexor.selenium_server_url');
-            $driver = RemoteWebDriver::create(
-                $seleniumServerUrl, $capabilities
-            );
+            // Retry connection to ChromeDriver
+            $driver = retry(5, function () use ($capabilities) {
+                return RemoteWebDriver::create(
+                    'http://localhost:9515', $capabilities, 120000, 120000
+                );
+            }, 50);
 
             $browser = new Browser($driver);
 
@@ -52,25 +58,31 @@ final class ReadWebsiteWithDusk
                 ->waitFor($selector, $timeout)
                 ->element($selector)->getText();
 
-            $browser->quit();
-            $chromeProcess->stop();
-
             render(view('tool', [
                 'name' => 'ReadWebsiteWithDusk',
                 'output' => "Successfully read content from {$url}",
             ]));
 
-            var_dump($content);
-
             return $content;
         } catch (Exception $e) {
-            $output = "Error reading website: " . $e->getMessage();
+            $output = "Error reading website: " . $e->getMessage() . "\n";
+            $output .= "File: " . $e->getFile() . "\n";
+            $output .= "Line: " . $e->getLine() . "\n";
+            $output .= "Trace: " . $e->getTraceAsString();
             render(view('tool', [
                 'name' => 'ReadWebsiteWithDusk',
                 'output' => $output,
             ]));
 
             return $output;
+        } finally {
+            // Ensure that we always attempt to close the browser and stop the ChromeDriver
+            if ($driver) {
+                (new Browser($driver))->quit();
+            }
+            if ($chromeProcess && $chromeProcess->isRunning()) {
+                $chromeProcess->stop();
+            }
         }
     }
 }

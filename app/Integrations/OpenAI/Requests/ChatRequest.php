@@ -32,7 +32,7 @@ class ChatRequest extends Request implements HasBody
         $assistant = $this->thread->project->assistant;
 
         return [
-            'model' => $assistant->model,
+            'model' => 'lmstudio-community/Meta-Llama-3.1-8B-Instruct-GGUF',
             'messages' => $this->formatMessages($assistant),
             'tools' => array_values($this->tools),
         ];

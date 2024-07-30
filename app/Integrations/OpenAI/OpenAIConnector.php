@@ -20,7 +20,7 @@ class OpenAIConnector extends Connector
      */
     public function resolveBaseUrl(): string
     {
-        return 'https://api.openai.com/v1';
+        return 'http://localhost:1234/v1';
     }
 
     /**
