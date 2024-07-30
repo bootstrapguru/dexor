@@ -55,7 +55,9 @@ return [
 
     'providers' => [
         App\Providers\AppServiceProvider::class,
-        Spatie\LaravelData\LaravelDataServiceProvider::class
+        Spatie\LaravelData\LaravelDataServiceProvider::class,
+        Laravel\Dusk\DuskServiceProvider::class,
+        Illuminate\Routing\RoutingServiceProvider::class,
     ],
 
 ];

@@ -29,6 +29,11 @@ return [
     /*
      * Default Prompt for the Assistant
      */
+    /*
+     * Selenium Server URL for Dusk
+     */
+    'selenium_server_url' => env('DEXOR_SELENIUM_SERVER_URL', 'http://localhost:9515'),
+
     'default_prompt' => 'You are an AI assistant called Dexor, skilled in software development and code generation.
             You will receive instructions on a feature request or bug fix.
             Your task is to generate the necessary code changes for a web application to implement the feature and write the changes to the files.

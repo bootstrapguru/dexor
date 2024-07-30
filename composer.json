@@ -20,8 +20,10 @@
         "guzzlehttp/guzzle": "^7.8",
         "guzzlehttp/psr7": "^2.6",
         "illuminate/database": "^11.5",
+        "illuminate/routing": "^11.18",
         "illuminate/view": "^11.5",
         "laravel-zero/phar-updater": "^1.4",
+        "laravel/dusk": "^8.2",
         "openai-php/client": "^0.10.1",
         "saloonphp/saloon": "^3.9",
         "spatie/laravel-data": "^4.7"

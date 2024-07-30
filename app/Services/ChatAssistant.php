@@ -10,6 +10,7 @@ use App\Tools\ListFiles;
 use App\Tools\ReadFile;
 use App\Tools\UpdateFile;
 use App\Tools\CreateFile;
+use App\Tools\ReadWebsiteWithDusk;
 use App\Traits\HasTools;
 use App\Utils\OnBoardingSteps;
 use Exception;
@@ -42,6 +43,7 @@ class ChatAssistant
             UpdateFile::class,
             ListFiles::class,
             ReadFile::class,
+            ReadWebsiteWithDusk::class,
         ]);
     }
 
@@ -302,16 +304,9 @@ class ChatAssistant
 
             $thread->messages()->create([
                 'role' => 'tool',
+                'tool_call_id' => $toolCall->id,
+                'name' => $toolCall->function->name,
                 'content' => $toolResponse,
-                'tool_calls' => [
-                    [
-                        'id' => $toolCall->id,
-                        'function' => [
-                            'name' => $toolCall->function->name,
-                            'arguments' => $toolCall->function->arguments,
-                        ],
-                    ],
-                ],
             ]);
         } catch (Exception $e) {
             throw new Exception("Error calling tool: {$e->getMessage()}");
