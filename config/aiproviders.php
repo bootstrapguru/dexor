@@ -8,6 +8,13 @@ return [
         'chatRequest' => \App\Integrations\OpenAI\Requests\ChatRequest::class,
     ],
 
+    'deep_seek' => [
+        'api_key' => env('DEEP_SEEK_API_KEY'),
+        'connector' => \App\Integrations\OpenAI\OpenAIConnector::class,
+        'listModelsRequest' => \App\Integrations\OpenAI\Requests\ListModelsRequest::class,
+        'chatRequest' => \App\Integrations\OpenAI\Requests\ChatRequest::class,
+    ],
+
     'claude' => [
         'api_key' => env('CLAUDE_API_KEY'),
         'models' => [

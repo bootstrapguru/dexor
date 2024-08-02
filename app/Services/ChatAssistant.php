@@ -21,6 +21,7 @@ use Saloon\Exceptions\Request\RequestException;
 use function Laravel\Prompts\form;
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\spin;
+use function Laravel\Prompts\text;
 use function Termwind\render;
 
 class ChatAssistant
@@ -49,33 +50,41 @@ class ChatAssistant
      * @throws FatalRequestException
      * @throws RequestException
      */
-    public function getCurrentProject(): Project
+    public function getCurrentProject(bool $isNew): Project
     {
         $projectPath = getcwd();
         $project = Project::where('path', $projectPath)->first();
 
-        if ($project) {
+        if ($isNew && $project) {
+            // Update the existing project if isNew is true
+            $project->assistant_id = $this->createNewAssistant()->id; // Update based on new assistant
+            $project->save();
             return $project;
         }
 
-        $userChoice = select(
-            label: 'No existing project found. Would you like to create a new assistant or use an existing one?',
-            options: [
-                'create_new' => 'Create New Assistant',
-                'use_existing' => 'Use Existing Assistant',
-            ]
-        );
+        if (!$project) {
+            // If there's no existing project, create a new one
+            $userChoice = select(
+                label: 'No project found. Would you like to create a new assistant or use an existing one?',
+                options: [
+                    'create_new' => 'Create New Assistant',
+                    'use_existing' => 'Use Existing Assistant',
+                ]
+            );
 
-        $assistantId = match ($userChoice) {
-            'create_new' => $this->createNewAssistant()->id,
-            'use_existing' => $this->selectExistingAssistant(),
-            default => throw new Exception('Invalid choice'),
-        };
+            $assistantId = match ($userChoice) {
+                'create_new' => $this->createNewAssistant()->id,
+                'use_existing' => $this->selectExistingAssistant(),
+                default => throw new Exception('Invalid choice'),
+            };
 
-        return Project::create([
-            'path' => $projectPath,
-            'assistant_id' => $assistantId,
-        ]);
+            return Project::create([
+                'path' => $projectPath,
+                'assistant_id' => $assistantId,
+            ]);
+        }
+
+        return $project;
     }
 
     /**
@@ -115,16 +124,16 @@ class ChatAssistant
             'description' => $assistant['description'],
             'model' => $assistant['model'],
             'prompt' => $assistant['prompt'],
-            'service' => $service,
+            'service' => $service
         ]);
     }
 
     /**
      * @throws Exception
      */
-    public function createThread()
+    public function createThread(bool $isNew): \App\Models\Thread
     {
-        $project = $this->getCurrentProject();
+        $project = $this->getCurrentProject($isNew);
         $latestThread = $project->threads()->latest()->first();
 
         if ($latestThread && $this->shouldUseExistingThread()) {
@@ -161,6 +170,11 @@ class ChatAssistant
         $thread->load('messages');
 
         $service = $thread->assistant->service;
+
+        if (!config("aiproviders.{$service}")) {
+            throw new Exception("Service {$service} is not configured");
+        }
+
         $connector = $this->getConnector($service);
         $chatRequest = $this->getChatRequest($service, $thread);
 
@@ -179,8 +193,18 @@ class ChatAssistant
     {
         $answer = $message->content;
 
-        $thread->messages()->create($message->toArray());
-        if ($message->tool_calls !== null && $message->tool_calls->isNotEmpty()) {
+        $messageData = [
+            'role' => $message->role,
+            'content' => $message->content,
+        ];
+
+        if (!empty($message->tool_calls)) {
+            $messageData['tool_calls'] = $message->tool_calls;
+        }
+
+        $thread->messages()->create($messageData);
+
+        if (!empty($message->tool_calls)) {
             $this->renderAnswer($answer);
 
             foreach ($message->tool_calls as $toolCall) {
@@ -211,7 +235,7 @@ class ChatAssistant
         $listModelsRequestClass = config("aiproviders.{$service}.listModelsRequest");
 
         if ($listModelsRequestClass !== null) {
-            $connector = new $connectorClass();
+            $connector = new $connectorClass($service);
             return $connector->send(new $listModelsRequestClass())->dto();
         }
 
@@ -255,7 +279,7 @@ class ChatAssistant
     private function getConnector(string $service): object
     {
         $connectorClass = config("aiproviders.{$service}.connector");
-        return new $connectorClass();
+        return new $connectorClass($service);
     }
 
     private function getChatRequest(string $service, $thread): object
@@ -295,7 +319,6 @@ class ChatAssistant
 
     private function ensureAPIKey(string $service): void
     {
-        $apiKeyConfigName = strtoupper($service).'_API_KEY';
         if (!config("aiproviders.{$service}.api_key")) {
             $this->onBoardingSteps->requestAPIKey($service);
         }

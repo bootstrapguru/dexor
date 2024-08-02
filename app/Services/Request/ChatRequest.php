@@ -40,9 +40,18 @@ class ChatRequest extends Request implements HasBody
         $messages = [[
             'role' => 'system',
             'content' => $assistant->prompt,
-        ],
-            ...$this->thread->messages,
-        ];
+        ]];
+
+        foreach ($this->thread->messages as $message) {
+            $messages[] = [
+                'role' => $message->role,
+                'content' => $message->content,
+            ];
+
+            if ($message->tool_calls) {
+                $messages[count($messages) - 1]['tool_calls'] = $message->tool_calls;
+            }
+        }
 
         return [
             'model' => $assistant->model,
