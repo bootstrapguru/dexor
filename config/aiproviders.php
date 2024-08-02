@@ -9,7 +9,7 @@ return [
     ],
 
     'deep_seek' => [
-        'api_key' => env('DEEP_SEEKER_API_KEY'),
+        'api_key' => env('DEEP_SEEK_API_KEY'),
         'connector' => \App\Integrations\OpenAI\OpenAIConnector::class,
         'listModelsRequest' => \App\Integrations\OpenAI\Requests\ListModelsRequest::class,
         'chatRequest' => \App\Integrations\OpenAI\Requests\ChatRequest::class,
