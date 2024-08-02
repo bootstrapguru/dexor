@@ -22,6 +22,7 @@ use Saloon\Exceptions\Request\RequestException;
 use function Laravel\Prompts\form;
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\spin;
+use function Laravel\Prompts\text;
 use function Termwind\render;
 
 class ChatAssistant
@@ -125,7 +126,7 @@ class ChatAssistant
             'description' => $assistant['description'],
             'model' => $assistant['model'],
             'prompt' => $assistant['prompt'],
-            'service' => $service,
+            'service' => $service
         ]);
     }
 
@@ -171,6 +172,11 @@ class ChatAssistant
         $thread->load('messages');
 
         $service = $thread->assistant->service;
+
+        if (!config("aiproviders.{$service}")) {
+            throw new Exception("Service {$service} is not configured");
+        }
+
         $connector = $this->getConnector($service);
         $chatRequest = $this->getChatRequest($service, $thread);
 
@@ -231,7 +237,7 @@ class ChatAssistant
         $listModelsRequestClass = config("aiproviders.{$service}.listModelsRequest");
 
         if ($listModelsRequestClass !== null) {
-            $connector = new $connectorClass();
+            $connector = new $connectorClass($service);
             return $connector->send(new $listModelsRequestClass())->dto();
         }
 
@@ -275,7 +281,7 @@ class ChatAssistant
     private function getConnector(string $service): object
     {
         $connectorClass = config("aiproviders.{$service}.connector");
-        return new $connectorClass();
+        return new $connectorClass($service);
     }
 
     private function getChatRequest(string $service, $thread): object
@@ -315,7 +321,6 @@ class ChatAssistant
 
     private function ensureAPIKey(string $service): void
     {
-        $apiKeyConfigName = strtoupper($service).'_API_KEY';
         if (!config("aiproviders.{$service}.api_key")) {
             $this->onBoardingSteps->requestAPIKey($service);
         }
