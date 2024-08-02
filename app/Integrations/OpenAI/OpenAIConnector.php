@@ -2,6 +2,7 @@
 
 namespace App\Integrations\OpenAI;
 
+use App\Models\Assistant;
 use Saloon\Http\Connector;
 use Saloon\Traits\Plugins\AcceptsJson;
 use Saloon\Traits\Plugins\AlwaysThrowOnErrors;
@@ -15,12 +16,19 @@ class OpenAIConnector extends Connector
 
     protected int $requestTimeout = 120;
 
+    public function __construct(protected readonly string $service) {
+        //
+    }
+
     /**
      * The Base URL of the API
      */
     public function resolveBaseUrl(): string
     {
-        return 'http://localhost:1234/v1';
+        return match ($this->service) {
+            'openai' => 'https://api.openai.com/v1',
+            'deep_seek' => 'https://api.deepseek.com/v1',
+        };
     }
 
     /**
