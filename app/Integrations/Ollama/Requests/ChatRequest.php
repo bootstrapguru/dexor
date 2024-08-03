@@ -32,7 +32,15 @@ class ChatRequest extends Request implements HasBody
 
     public function defaultBody(): array
     {
-        $assistant = $this->thread->project->assistant;
+        $assistant = $this->thread->assistant;
+
+        if (!$assistant) {
+            throw new \Exception('No assistant associated with this thread.');
+        }
+
+        if (!$assistant->model) {
+            throw new \Exception('The assistant does not have a model specified.');
+        }
 
         $body = [
             'model' => $assistant->model,

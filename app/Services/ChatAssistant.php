@@ -55,33 +55,36 @@ class ChatAssistant
         $projectPath = getcwd();
         $project = Project::where('path', $projectPath)->first();
 
-        if ($isNew && $project) {
-            // Update the existing project if isNew is true
-            $project->assistant_id = $this->createNewAssistant()->id; // Update based on new assistant
-            $project->save();
-            return $project;
-        }
-
         if (!$project) {
             // If there's no existing project, create a new one
-            $userChoice = select(
-                label: 'No project found. Would you like to create a new assistant or use an existing one?',
-                options: [
-                    'create_new' => 'Create New Assistant',
-                    'use_existing' => 'Use Existing Assistant',
-                ]
-            );
-
-            $assistantId = match ($userChoice) {
-                'create_new' => $this->createNewAssistant()->id,
-                'use_existing' => $this->selectExistingAssistant(),
-                default => throw new Exception('Invalid choice'),
-            };
-
-            return Project::create([
+            $project = Project::create([
                 'path' => $projectPath,
-                'assistant_id' => $assistantId,
             ]);
+        }
+
+        if ($isNew) {
+            // Create a new assistant and associate it with the project
+            $assistant = $this->createNewAssistant();
+            $project->assistants()->attach($assistant->id);
+        } else {
+            // If not new, check if the project has any assistants
+            if ($project->assistants()->count() === 0) {
+                $userChoice = select(
+                    label: 'No assistants found for this project. Would you like to create a new assistant or use an existing one?',
+                    options: [
+                        'create_new' => 'Create New Assistant',
+                        'use_existing' => 'Use Existing Assistant',
+                    ]
+                );
+
+                $assistant = match ($userChoice) {
+                    'create_new' => $this->createNewAssistant(),
+                    'use_existing' => Assistant::find($this->selectExistingAssistant()),
+                    default => throw new Exception('Invalid choice'),
+                };
+
+                $project->assistants()->attach($assistant->id);
+            }
         }
 
         return $project;
@@ -96,6 +99,7 @@ class ChatAssistant
     {
         $path = getcwd();
         $folderName = basename($path);
+        $project = Project::where('path', $path)->first();
 
         $service = $this->selectService();
         $this->ensureAPIKey($service);
@@ -134,7 +138,15 @@ class ChatAssistant
     public function createThread(bool $isNew): \App\Models\Thread
     {
         $project = $this->getCurrentProject($isNew);
-        $latestThread = $project->threads()->latest()->first();
+
+        // Select or create an assistant for the thread
+        $assistant = $this->selectAssistantForProject($project);
+
+        $latestThread = $project->threads()
+            ->where('assistant_id', $assistant->id)
+            ->with('assistant') // Eager load the assistant
+            ->latest()
+            ->first();
 
         if ($latestThread && $this->shouldUseExistingThread()) {
             return $latestThread;
@@ -142,11 +154,20 @@ class ChatAssistant
 
         $thread = spin(
             fn () => $project->threads()->create([
-                'assistant_id' => $project->assistant_id,
+                'assistant_id' => $assistant->id,
+                'project_id' => $project->id,
                 'title' => 'New Thread',
             ]),
             'Creating New Thread...'
         );
+
+        // Ensure the thread is associated with both project and assistant
+        $thread->load('assistant', 'project');
+
+        // Double-check that the assistant is loaded
+        if (!$thread->assistant) {
+            throw new \Exception('Failed to load assistant for the thread.');
+        }
 
         render(view('assistant', [
             'answer' => 'How can I help you?',
@@ -198,13 +219,13 @@ class ChatAssistant
             'content' => $message->content,
         ];
 
-        if (!empty($message->tool_calls)) {
+        if ($this->hasToolCalls($message)) {
             $messageData['tool_calls'] = $message->tool_calls;
         }
 
         $thread->messages()->create($messageData);
 
-        if (!empty($message->tool_calls)) {
+        if ($this->hasToolCalls($message)) {
             $this->renderAnswer($answer);
 
             foreach ($message->tool_calls as $toolCall) {
@@ -215,6 +236,11 @@ class ChatAssistant
 
         $this->renderAnswer($answer);
         return $answer;
+    }
+
+    private function hasToolCalls($message): bool
+    {
+        return $message->tool_calls && $message->tool_calls->isNotEmpty();
     }
 
     private function selectService(): string
@@ -322,5 +348,30 @@ class ChatAssistant
         if (!config("aiproviders.{$service}.api_key")) {
             $this->onBoardingSteps->requestAPIKey($service);
         }
+    }
+
+    private function selectAssistantForProject(Project $project): Assistant
+    {
+        $projectAssistants = $project->assistants;
+
+        if ($projectAssistants->isEmpty()) {
+            return $this->createNewAssistant();
+        }
+
+        $options = $projectAssistants->pluck('name', 'id')->toArray();
+        $options['create_new'] = 'Create New Assistant';
+
+        $selectedOption = select(
+            label: 'Select an assistant for this project:',
+            options: $options
+        );
+
+        if ($selectedOption === 'create_new') {
+            $newAssistant = $this->createNewAssistant();
+            $project->assistants()->attach($newAssistant->id);
+            return $newAssistant;
+        }
+
+        return Assistant::find($selectedOption);
     }
 }
