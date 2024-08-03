@@ -198,13 +198,13 @@ class ChatAssistant
             'content' => $message->content,
         ];
 
-        if (!empty($message->tool_calls)) {
+        if (!empty($message->tool_calls) && count($message->tool_calls) > 0) {
             $messageData['tool_calls'] = $message->tool_calls;
         }
 
         $thread->messages()->create($messageData);
 
-        if (!empty($message->tool_calls)) {
+        if (!empty($message->tool_calls) && count($message->tool_calls) > 0){
             $this->renderAnswer($answer);
 
             foreach ($message->tool_calls as $toolCall) {
