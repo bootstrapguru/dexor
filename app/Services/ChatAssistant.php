@@ -6,6 +6,7 @@ use App\Data\AIModelData;
 use App\Models\Assistant;
 use App\Models\Project;
 use App\Tools\ExecuteCommand;
+use App\Tools\GetWebsiteContent;
 use App\Tools\ListFiles;
 use App\Tools\ReadFile;
 use App\Tools\UpdateFile;
@@ -43,6 +44,7 @@ class ChatAssistant
             UpdateFile::class,
             ListFiles::class,
             ReadFile::class,
+            GetWebsiteContent::class
         ]);
     }
 

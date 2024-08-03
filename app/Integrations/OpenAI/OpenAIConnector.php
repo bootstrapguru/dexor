@@ -29,7 +29,6 @@ class OpenAIConnector extends Connector
             'openai' => 'https://api.openai.com/v1',
             'deep_seek' => 'https://api.deepseek.com/v1',
         };
-
     }
 
     /**
