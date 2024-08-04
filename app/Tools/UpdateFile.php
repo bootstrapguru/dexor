@@ -18,12 +18,14 @@ final class UpdateFile
         string $replace_objects_json,
     ): string {
 
-        // Decode the JSON string into an array
-        $replace_objects = json_decode($replace_objects_json, true);
+        try {
+            $replace_objects = json_decode($replace_objects_json, true);
+        } catch (\Exception $e) {
+            return 'Invalid JSON format for replace_objects: '.$replace_objects_json;
+        }
 
-        // Debug: Dump the replace objects
         render(view('tool', [
-            'name' => 'UpdateFile',
+            'name' => 'UpdateFile: '.$file_path,
             'output' => 'Replace objects: '.print_r($replace_objects, true),
         ]));
 
@@ -40,16 +42,25 @@ final class UpdateFile
         $fileContent = Storage::get($file_path);
 
         render(view('tool', [
-            'name' => 'UpdateFile',
+            'name' => 'UpdateFile: '.$file_path,
             'output' => 'Updating content in the file....',
         ]));
 
-        // Loop through the objects and apply the changes
-        foreach ($replace_objects as $object) {
-            if (isset($object['find']) && isset($object['replace'])) {
-                // Replace the text in the file content
-                $fileContent = str_replace($object['find'], $object['replace'], $fileContent);
+        try {
+            // Loop through the objects and apply the changes
+            foreach ($replace_objects as $object) {
+                if (isset($object['find']) && isset($object['replace'])) {
+                    // Replace the text in the file content
+                    $fileContent = str_replace($object['find'], $object['replace'], $fileContent);
+                }
             }
+        }
+        catch (\Exception $e) {
+            render(view('tool', [
+                'name' => 'UpdateFile: '.$file_path,
+                'output' => 'Error updating the file: '.$e->getMessage(),
+            ]));
+            return 'Error updating the file: '.$e->getMessage();
         }
 
         // Update the file with the new content

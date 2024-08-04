@@ -1,5 +1,14 @@
 # Getting Started
 
+## Requirements
+
+Before installing Dexor, please ensure that your system meets the following requirements:
+
+- PHP version 8.2.0 or higher
+
+You can check your PHP version by running `php -v` in your terminal.
+
+
 ## Installation
 
 Let me guide you through my installation process. Choose your preferred method: I would choose the first one if I were you! 🤖
@@ -9,17 +18,23 @@ Let me guide you through my installation process. Choose your preferred method: 
 Install me with curl:
 
 ```sh
-curl -L https://github.com/bootstrapguru/dexor.dev/releases/latest/download/dexor -o /usr/local/bin/dexor
+curl -L https://github.com/bootstrapguru/dexor/releases/latest/download/dexor -o /usr/local/bin/dexor
 chmod +x /usr/local/bin/dexor
 ```
 
 ### Via Composer
 
-To install me globally using Composer, run:
+To install me globally using Composer, follow these steps:
+
+1. If you don't have Composer installed, please follow the [official Composer installation guide](https://getcomposer.org/doc/00-intro.md#installation-linux-unix-macos) first.
+
+2. Once Composer is installed, run the following command:
 
 ```sh
-composer global require bootstrapguru/droid
+composer global require bootstrapguru/dexor
 ```
+
+Make sure your global Composer binaries directory is in your system's PATH to run Dexor from anywhere.
 
 ### Via GitHub Release
 

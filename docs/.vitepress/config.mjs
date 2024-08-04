@@ -18,7 +18,8 @@ export default defineConfig({
                   { text: 'Who am I', link: '/who-am-i' },
                   { text: 'Getting Started', link: '/getting-started' },
                   { text: 'Onboarding', link: '/onboarding' },
-                  { text: 'Features', link: '/features' }
+                  { text: 'Features', link: '/features' },
+                  { text: 'Models', link: '/models' }
               ]
           },
           {
@@ -39,7 +40,8 @@ export default defineConfig({
       ],
 
       socialLinks: [
-          { icon: 'github', link: 'https://github.com/bootstrapguru/dexor.dev' }
+          { icon: 'github', link: 'https://github.com/bootstrapguru/dexor' },
+          { icon: 'discord', link: 'https://discord.gg/DRzG5a3u4x' }
       ]
   }
 })

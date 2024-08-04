@@ -28,4 +28,7 @@ features:
     details: Creates new files and adopts to your existing code structure.
   - title: AI Service Integration
     details: Supports multiple AI services and their respective models for enhanced flexibility.
+  - title: Flexible AI Models
+    details: Choose from a variety of AI models to best suit your development needs.
+    link: /models
 ---
