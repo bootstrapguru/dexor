@@ -76,7 +76,7 @@ dexor --new
 
 ## 📚 Documentation
 
-For comprehensive documentation, detailed getting started guides, and advanced usage, please visit our [official documentation](https://docs.dexors.dev/).
+For comprehensive documentation, detailed getting started guides, and advanced usage, please visit our [official documentation](https://docs.dexor.dev/).
 
 ## 🎥 Video Tutorial
 
