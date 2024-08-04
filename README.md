@@ -21,14 +21,21 @@ Dexor integrates with multiple AI providers, offering you flexibility and cuttin
 
 Choose the AI provider that best suits your project needs and development style. Each offers unique strengths to enhance your coding experience with Dexor.
 
-## 🌐 Discord Community: [![Discord](https://img.shields.io/discord/YOUR_DISCORD_SERVER_ID?color=7289da&label=Discord&logo=discord&logoColor=ffffff)](https://discord.gg/DRzG5a3u4x)
 
 <p align="center">
+    <h2>🌐 Discord Community: <a href="https://discord.gg/DRzG5a3u4x">
+    <img src="https://img.shields.io/badge/Join-Discord-blue.svg"  alt="Dexor Demo"/>
+  </a>
+</h2>
+</p>
+
+<a href="https://youtu.be/j7WuuhTxyq0">
   <img
     src="https://raw.githubusercontent.com/bootstrapguru/dexor/main/docs/public/img.webp"
     alt="aider screencast"
   >
-</p>
+</a>
+
 ## 🚀 Quick Start
 
 ### Requirements
@@ -73,7 +80,7 @@ For comprehensive documentation, detailed getting started guides, and advanced u
 
 ## 🎥 Video Tutorial
 
-Check out our YouTube video tutorial [here](https://youtu.be/oLmbafcHCKg) for a visual guide to getting started with Dexor.
+Check out our YouTube video tutorial [here](https://youtu.be/j7WuuhTxyq0) for a visual guide to getting started with Dexor.
 
 
 ## 📄 License
