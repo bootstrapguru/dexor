@@ -23,7 +23,12 @@ Choose the AI provider that best suits your project needs and development style.
 
 ## 🌐 Discord Community: [![Discord](https://img.shields.io/discord/YOUR_DISCORD_SERVER_ID?color=7289da&label=Discord&logo=discord&logoColor=ffffff)](https://discord.gg/DRzG5a3u4x)
 
-
+<p align="center">
+  <img
+    src="https://raw.githubusercontent.com/bootstrapguru/dexor/main/docs/public/img.webp"
+    alt="aider screencast"
+  >
+</p>
 ## 🚀 Quick Start
 
 ### Requirements
