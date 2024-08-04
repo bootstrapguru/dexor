@@ -1,6 +1,12 @@
 <?php
 
 return [
+    'openrouter' => [
+        'api_key' => env('OPENROUTER_API_KEY'),
+        'connector' => \App\Integrations\OpenRouter\OpenRouterConnector::class,
+        'listModelsRequest' => \App\Integrations\OpenRouter\Requests\ListModelsRequest::class,
+        'chatRequest' => \App\Integrations\OpenRouter\Requests\ChatRequest::class,
+    ],
     'openai' => [
         'api_key' => env('OPENAI_API_KEY'),
         'connector' => \App\Integrations\OpenAI\OpenAIConnector::class,
