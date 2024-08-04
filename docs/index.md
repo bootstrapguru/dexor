@@ -16,7 +16,9 @@ hero:
     - theme: alt
       text: Features
       link: /features
-
+image:
+    src: dexor-demo.webp
+    alt: Dexor Demo
 features:
   - title: Code Analysis
     details: Scans through files and folders to read and understand your code.
