@@ -39,7 +39,7 @@ export default defineConfig({
       ],
 
       socialLinks: [
-          { icon: 'github', link: 'https://github.com/bootstrapguru/dexor.dev' }
+          { icon: 'github', link: 'https://github.com/bootstrapguru/dexor' }
       ]
   }
 })
