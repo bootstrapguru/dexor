@@ -31,6 +31,7 @@ class ClaudeAIConnector extends Connector
         return [
             'x-api-key' => config('aiproviders.claude.api_key'),
             'anthropic-version' => '2023-06-01',
+            'anthropic-beta' => 'prompt-caching-2024-07-31',
         ];
     }
 }

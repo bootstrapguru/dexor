@@ -14,8 +14,11 @@ use Saloon\Http\Response;
 use Saloon\Traits\Body\HasJsonBody;
 use Saloon\Traits\Plugins\HasTimeout;
 
+use Illuminate\Support\Facades\Config;
+
 class ChatRequest extends Request implements HasBody
 {
+    use HasTimeout;
     use HasJsonBody;
 
     /**
@@ -23,10 +26,24 @@ class ChatRequest extends Request implements HasBody
      */
     protected Method $method = Method::POST;
 
+    /**
+     * The request timeout
+     */
+    protected float $requestTimeout;
+
+    /**
+     * The connection timeout
+     */
+    protected float $connectTimeout;
+
     public function __construct(
         public readonly Thread $thread,
         public readonly array $tools
-    ) {}
+    ) {
+        $timeout = Config::get('claude.timeout', 300);
+        $this->requestTimeout = (float) $timeout;
+        $this->connectTimeout = (float) $timeout;
+    }
 
     /**
      * The endpoint
@@ -41,13 +58,15 @@ class ChatRequest extends Request implements HasBody
      */
     public function defaultBody(): array
     {
-        return [
+        $body = [
             'model' => $this->thread->assistant->model,
+            'system' => $this->getSystemMessage(),
             'messages' => $this->formatMessages(),
-            'system' => $this->thread->assistant->prompt,
             'tools' => $this->formatTools(),
             'max_tokens' => 4096,
         ];
+
+        return $body;
     }
 
     private function formatTools(): array
@@ -141,5 +160,16 @@ class ChatRequest extends Request implements HasBody
         $message->tool_calls = $tools;
 
         return $message;
+    }
+
+    private function getSystemMessage()
+    {
+        return [
+            [
+                'type' => 'text',
+                'text' => $this->thread->assistant->prompt,
+                'cache_control' => ['type' => 'ephemeral']
+            ]
+        ];
     }
 }
