@@ -301,7 +301,7 @@ class ChatAssistant
     private function executeToolCall($thread, $toolCall): void
     {
         try {
-            $toolResponse = $this->call(
+            $toolResponse = $this->callTool(
                 $toolCall->function->name,
                 json_decode($toolCall->function->arguments, true, 512, JSON_THROW_ON_ERROR)
             );

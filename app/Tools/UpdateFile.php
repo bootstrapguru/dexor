@@ -14,7 +14,7 @@ final class UpdateFile
         #[Description('File path to write content to')]
         string $file_path,
 
-        #[Description('JSON string format of objects containing text to find and text to replace. Each object should have `find` and `replace` keys.')]
+        #[Description('JSON string format of objects containing text to find and text to replace. Each object should have `find`, `replace` keys and optionally `occurrence`.')]
         string $replace_objects_json,
     ): string {
 
@@ -50,8 +50,26 @@ final class UpdateFile
             // Loop through the objects and apply the changes
             foreach ($replace_objects as $object) {
                 if (isset($object['find']) && isset($object['replace'])) {
-                    // Replace the text in the file content
-                    $fileContent = str_replace($object['find'], $object['replace'], $fileContent);
+                    $find = preg_quote($object['find'], '/');
+                    $replace = $object['replace'];
+                    $occurrence = isset($object['occurrence']) ? (int)$object['occurrence'] : -1;
+
+                    if ($occurrence > 0) {
+                        // Replace specific occurrence
+                        $pattern = '/(' . $find . ')/';
+                        $count = 0;
+                        $fileContent = preg_replace_callback($pattern, function($matches) use (&$count, $occurrence, $replace) {
+                            $count++;
+                            return ($count == $occurrence) ? $replace : $matches[0];
+                        }, $fileContent);
+                    } else {
+                        // Replace all occurrences
+                        $fileContent = preg_replace('/' . $find . '/', $replace, $fileContent, -1, $count);
+                    }
+
+                    if ($count === 0) {
+                        throw new \Exception("No replacements made for: " . $object['find']);
+                    }
                 }
             }
         }

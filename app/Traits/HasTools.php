@@ -64,7 +64,7 @@ trait HasTools
     /**
      * @throws ReflectionException
      */
-    public function call(string $tool_name, ?array $arguments = []): mixed
+    public function callTool(string $tool_name, ?array $arguments = []): mixed
     {
         if (null === $tool_class = array_key_first(array_filter($this->registered_tools, static fn ($registered_tools) => $registered_tools['function']['name'] === $tool_name))) {
             return null;

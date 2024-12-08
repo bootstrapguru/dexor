@@ -7,3 +7,4 @@
 docs/.vitepress/dist
 docs/.vitepress/cache
 /database/database.sqlite
+/training-data
