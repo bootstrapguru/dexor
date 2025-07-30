@@ -129,6 +129,21 @@ class OnBoardingSteps
             $envValues = $dotenv->load();
 
             foreach ($envValues as $key => $value) {
+                // Map API keys to Prism configuration
+                $prismProviderMap = [
+                    'OPENAI_API_KEY' => 'prism.providers.openai.api_key',
+                    'CLAUDE_API_KEY' => 'prism.providers.anthropic.api_key',
+                    'ANTHROPIC_API_KEY' => 'prism.providers.anthropic.api_key',
+                    'OPENROUTER_API_KEY' => 'prism.providers.openrouter.api_key',
+                    'DEEP_SEEK_API_KEY' => 'prism.providers.deepseek.api_key',
+                    'DEEPSEEK_API_KEY' => 'prism.providers.deepseek.api_key',
+                ];
+                
+                if (isset($prismProviderMap[$key])) {
+                    Config::set($prismProviderMap[$key], $value);
+                }
+                
+                // Also set in old config for backward compatibility
                 $parsedKey = strtolower(str_replace('_API_KEY', '', $key));
                 Config::set('aiproviders.'.strtolower($parsedKey).'.api_key', $value);
             }

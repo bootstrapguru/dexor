@@ -10,13 +10,12 @@ use App\Tools\ListFiles;
 use App\Tools\ReadFile;
 use App\Tools\UpdateFile;
 use App\Tools\CreateFile;
-use App\Traits\HasTools;
+use App\Services\PrismAdapter;
+use App\Services\ToolAdapter;
 use App\Utils\OnBoardingSteps;
 use Exception;
 use Illuminate\Support\Collection;
 use ReflectionException;
-use Saloon\Exceptions\Request\FatalRequestException;
-use Saloon\Exceptions\Request\RequestException;
 
 use function Laravel\Prompts\form;
 use function Laravel\Prompts\select;
@@ -26,10 +25,11 @@ use function Termwind\render;
 
 class ChatAssistant
 {
-    use HasTools;
-
     private const DEFAULT_SERVICE = 'openai';
     private OnBoardingSteps $onBoardingSteps;
+    private PrismAdapter $prismAdapter;
+    private ToolAdapter $toolAdapter;
+    private array $registered_tools = [];
 
     /**
      * @throws ReflectionException
@@ -37,18 +37,15 @@ class ChatAssistant
     public function __construct(OnBoardingSteps $onBoardingSteps)
     {
         $this->onBoardingSteps = $onBoardingSteps;
-        $this->register([
-            ExecuteCommand::class,
-            CreateFile::class,
-            UpdateFile::class,
-            ListFiles::class,
-            ReadFile::class,
-        ]);
+        $this->prismAdapter = new PrismAdapter();
+        $this->toolAdapter = new ToolAdapter();
+        
+        // For now, we'll use simplified tools directly in PrismAdapter
+        $this->registered_tools = [];
     }
 
     /**
-     * @throws FatalRequestException
-     * @throws RequestException
+     * @throws Exception
      */
     public function getCurrentProject(bool $isNew): Project
     {
@@ -88,8 +85,6 @@ class ChatAssistant
     }
 
     /**
-     * @throws FatalRequestException
-     * @throws RequestException
      * @throws Exception
      */
     public function createNewAssistant(): Assistant
@@ -171,15 +166,13 @@ class ChatAssistant
 
         $service = $thread->assistant->service;
 
-        if (!config("aiproviders.{$service}")) {
-            throw new Exception("Service {$service} is not configured");
+        // Check if service is supported by Prism
+        if (!in_array($service, ['openai', 'claude', 'ollama', 'openrouter', 'deep_seek'])) {
+            throw new Exception("Service {$service} is not supported by Prism");
         }
 
-        $connector = $this->getConnector($service);
-        $chatRequest = $this->getChatRequest($service, $thread);
-
         $message = spin(
-            fn () => $connector->send($chatRequest)->dto(),
+            fn () => $this->prismAdapter->sendChatRequest($thread, $this->getRegisteredToolDefinitions()),
             "Getting response from {$thread->assistant->service}: {$thread->assistant->model}"
         );
 
@@ -198,20 +191,9 @@ class ChatAssistant
             'content' => $message->content,
         ];
 
-        if (!empty($message->tool_calls) && count($message->tool_calls) > 0) {
-            $messageData['tool_calls'] = $message->tool_calls;
-        }
-
+        // With PrismPHP, tool calls are executed internally and the final response includes the result
+        // We just need to save the assistant's response
         $thread->messages()->create($messageData);
-
-        if (!empty($message->tool_calls) && count($message->tool_calls) > 0){
-            $this->renderAnswer($answer);
-
-            foreach ($message->tool_calls as $toolCall) {
-                $this->executeToolCall($thread, $toolCall);
-            }
-            return $this->getAnswer($thread, null);
-        }
 
         $this->renderAnswer($answer);
         return $answer;
@@ -219,9 +201,17 @@ class ChatAssistant
 
     private function selectService(): string
     {
+        $availableServices = [
+            'openai' => 'OpenAI',
+            'claude' => 'Claude (Anthropic)',
+            'ollama' => 'Ollama (Local)',
+            'openrouter' => 'OpenRouter',
+            'deep_seek' => 'DeepSeek',
+        ];
+        
         return select(
             label: 'Choose the Service for the assistant',
-            options: array_keys(config('aiproviders')),
+            options: $availableServices,
             default: self::DEFAULT_SERVICE
         );
     }
@@ -231,16 +221,8 @@ class ChatAssistant
      */
     private function getModels(string $service): Collection
     {
-        $connectorClass = config("aiproviders.{$service}.connector");
-        $listModelsRequestClass = config("aiproviders.{$service}.listModelsRequest");
-
-        if ($listModelsRequestClass !== null) {
-            $connector = new $connectorClass($service);
-            return $connector->send(new $listModelsRequestClass())->dto();
-        }
-
-        return collect(config("aiproviders.{$service}.models"))
-            ->map(fn ($model) => AIModelData::from(['name' => $model]));
+        $models = $this->prismAdapter->getModels($service);
+        return collect($models)->map(fn ($model) => AIModelData::from(['name' => $model]));
     }
 
     private function filterModels(Collection $models, string $value): array
@@ -251,8 +233,7 @@ class ChatAssistant
     }
 
     /**
-     * @throws FatalRequestException
-     * @throws RequestException
+     * @throws Exception
      */
     private function selectExistingAssistant(): int
     {
@@ -276,16 +257,13 @@ class ChatAssistant
         ) === 'use_existing';
     }
 
-    private function getConnector(string $service): object
+    /**
+     * Get registered tool definitions for Prism
+     */
+    private function getRegisteredToolDefinitions(): array
     {
-        $connectorClass = config("aiproviders.{$service}.connector");
-        return new $connectorClass($service);
-    }
-
-    private function getChatRequest(string $service, $thread): object
-    {
-        $chatRequestClass = config("aiproviders.{$service}.chatRequest");
-        return new $chatRequestClass($thread, $this->registered_tools);
+        // Return empty array since we're using PrismTools directly
+        return [];
     }
 
     private function renderAnswer(?string $answer): void
@@ -300,26 +278,25 @@ class ChatAssistant
      */
     private function executeToolCall($thread, $toolCall): void
     {
-        try {
-            $toolResponse = $this->call(
-                $toolCall->function->name,
-                json_decode($toolCall->function->arguments, true, 512, JSON_THROW_ON_ERROR)
-            );
-
-            $thread->messages()->create([
-                'role' => 'tool',
-                'tool_call_id' => $toolCall->id,
-                'name' => $toolCall->function->name,
-                'content' => $toolResponse,
-            ]);
-        } catch (Exception $e) {
-            throw new Exception("Error calling tool: {$e->getMessage()}");
-        }
+        // Tool execution is now handled directly by PrismPHP
+        // This method is kept for compatibility but won't be called
+        // as Prism handles tool execution internally
+        throw new Exception("Tool execution should be handled by PrismPHP internally");
     }
 
     private function ensureAPIKey(string $service): void
     {
-        if (!config("aiproviders.{$service}.api_key")) {
+        // Map service names to Prism config keys
+        $prismConfigKey = match ($service) {
+            'openai' => 'prism.providers.openai.api_key',
+            'claude' => 'prism.providers.anthropic.api_key',
+            'ollama' => null, // Ollama doesn't need API key
+            'openrouter' => 'prism.providers.openrouter.api_key',
+            'deep_seek' => 'prism.providers.deepseek.api_key',
+            default => null,
+        };
+        
+        if ($prismConfigKey && !config($prismConfigKey)) {
             $this->onBoardingSteps->requestAPIKey($service);
         }
     }
